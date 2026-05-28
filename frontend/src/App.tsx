@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, CalendarIcon, Clock, ChevronRight, Check, MapPin, Utensils, Film, TreePine, ChefHat, Wine, Sparkles, Music, Camera, Sun, Moon, Send, Loader2, Mail } from "lucide-react";
 import confetti from "canvas-confetti";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const API_BASE = (import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || "") as string;
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -105,55 +104,20 @@ const FOOD_TYPES = [
   { id: "steakhouse", label: "Steakhouse", emoji: "🥩" },
 ];
 
-// Fetch movies from Supabase
+// Fetch movies from backend
 async function fetchMovies() {
-  const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
-
-  const response = await fetch(
-    `${supabaseUrl}/rest/v1/movies?is_active=eq.true&select=*&order=created_at.desc`,
-    {
-      headers: {
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-      },
-    }
-  );
-
+  const response = await fetch(`${API_BASE}/api/movies`);
   if (!response.ok) throw new Error('Failed to fetch movies');
-  const data = await response.json();
-
-  const newReleases = data
-    .filter((m: any) => m.category === 'new_release')
-    .filter((m: any) => !m.week_number || m.week_number === currentWeek % 4 + 1 || m.week_number === (currentWeek - 1) % 4 + 1)
-    .slice(0, 8);
-
-  const popularClassics = data
-    .filter((m: any) => m.category === 'classic')
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 8);
-
-  return { newReleases, popularClassics };
+  return await response.json();
 }
 
-// Fetch restaurants from Supabase
+// Fetch restaurants from backend
 async function fetchRestaurants(cuisineType: string) {
   const response = await fetch(
-    `${supabaseUrl}/rest/v1/restaurants?cuisine_type=ilike.%25${cuisineType}%25&is_active=eq.true&select=*&order=price_range,name`,
-    {
-      headers: {
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-      },
-    }
+    `${API_BASE}/api/restaurants?cuisine_type=${encodeURIComponent(cuisineType)}`,
   );
-
   if (!response.ok) throw new Error('Failed to fetch restaurants');
-  const data = await response.json();
-
-  const budget = data.filter((r: any) => r.price_range === 'budget').slice(0, 3);
-  const upscale = data.filter((r: any) => r.price_range === 'upscale').slice(0, 3);
-
-  return [...budget, ...upscale];
+  return await response.json();
 }
 
 // New releases (updated weekly) and popular classics
@@ -804,11 +768,10 @@ function Confirm() {
 
     setSendingEmail(true);
     try {
-      const response = await fetch(`${supabaseUrl}/functions/v1/send-date-email`, {
+      const response = await fetch(`${API_BASE}/api/send-date-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseKey}`,
         },
         body: JSON.stringify({
           email: emailAddress,
