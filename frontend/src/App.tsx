@@ -23,73 +23,142 @@ const DateIllustrations = {
   restaurant: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
       <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.1)" />
-      <path d="M35 30 L40 55 L35 85 M65 30 L60 55 L65 85 M40 30 L40 55 L60 55 L60 30"
-            stroke="hsl(var(--primary))" strokeWidth="3" fill="none" strokeLinecap="round"/>
-      <circle cx="50" cy="25" r="4" fill="hsl(var(--primary))"/>
+      {/* Plate */}
+      <circle cx="50" cy="58" r="22" fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth="2.5"/>
+      <circle cx="50" cy="58" r="14" fill="none" stroke="hsl(var(--primary))" strokeWidth="1.2"/>
+      {/* Fork */}
+      <path d="M24 18 L24 38 Q24 42 28 42 L28 80 M28 18 L28 32 M32 18 L32 32 Q32 42 28 42" stroke="hsl(var(--primary))" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Knife */}
+      <path d="M72 18 Q78 20 78 35 L72 38 L72 80" stroke="hsl(var(--primary))" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
   cinema: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <rect x="15" y="30" width="70" height="50" rx="5" fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="3"/>
-      <path d="M30 40 L45 50 L30 60 Z" fill="hsl(var(--primary))"/>
-      <rect x="50" y="42" width="20" height="16" fill="hsl(var(--primary))" opacity="0.5"/>
-      <circle cx="50" cy="25" r="8" stroke="hsl(var(--primary))" strokeWidth="2" fill="none"/>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.1)" />
+      {/* Film strip */}
+      <rect x="22" y="26" width="56" height="52" rx="4" fill="hsl(var(--primary) / 0.18)" stroke="hsl(var(--primary))" strokeWidth="2"/>
+      {/* Sprocket holes */}
+      <rect x="26" y="31" width="5" height="5" rx="1" fill="hsl(var(--primary))"/>
+      <rect x="26" y="43" width="5" height="5" rx="1" fill="hsl(var(--primary))"/>
+      <rect x="26" y="55" width="5" height="5" rx="1" fill="hsl(var(--primary))"/>
+      <rect x="26" y="67" width="5" height="5" rx="1" fill="hsl(var(--primary))"/>
+      <rect x="69" y="31" width="5" height="5" rx="1" fill="hsl(var(--primary))"/>
+      <rect x="69" y="43" width="5" height="5" rx="1" fill="hsl(var(--primary))"/>
+      <rect x="69" y="55" width="5" height="5" rx="1" fill="hsl(var(--primary))"/>
+      <rect x="69" y="67" width="5" height="5" rx="1" fill="hsl(var(--primary))"/>
+      {/* Center frames */}
+      <rect x="36" y="32" width="28" height="18" fill="none" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      <rect x="36" y="54" width="28" height="18" fill="none" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
     </svg>
   ),
   picnic: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
       <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.1)" />
-      <path d="M25 35 Q50 25 75 35 L75 85 L25 85 Z" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2"/>
-      <path d="M35 45 L65 45 M35 55 L65 55" stroke="hsl(var(--primary))" strokeWidth="2"/>
-      <circle cx="40" cy="65" r="3" fill="hsl(var(--primary))"/>
-      <circle cx="50" cy="72" r="3" fill="hsl(var(--primary))"/>
+      {/* Basket handle */}
+      <path d="M30 50 Q30 28 50 28 Q70 28 70 50" stroke="hsl(var(--primary))" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+      {/* Basket body */}
+      <path d="M24 50 L76 50 L70 80 L30 80 Z" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="round"/>
+      {/* Weave verticals */}
+      <line x1="38" y1="50" x2="36" y2="80" stroke="hsl(var(--primary) / 0.6)" strokeWidth="1.2"/>
+      <line x1="50" y1="50" x2="50" y2="80" stroke="hsl(var(--primary) / 0.6)" strokeWidth="1.2"/>
+      <line x1="62" y1="50" x2="64" y2="80" stroke="hsl(var(--primary) / 0.6)" strokeWidth="1.2"/>
+      {/* Weave horizontals */}
+      <line x1="26" y1="60" x2="74" y2="60" stroke="hsl(var(--primary) / 0.6)" strokeWidth="1.2"/>
+      <line x1="28" y1="70" x2="72" y2="70" stroke="hsl(var(--primary) / 0.6)" strokeWidth="1.2"/>
+      {/* Lid band */}
+      <rect x="24" y="47" width="52" height="6" rx="2" fill="hsl(var(--primary))" />
     </svg>
   ),
   hiking: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
       <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.1)" />
-      <path d="M50 20 L30 80 M50 20 L70 80" stroke="hsl(var(--primary))" strokeWidth="3" fill="none"/>
-      <circle cx="50" cy="25" r="5" fill="hsl(var(--primary))"/>
-      <path d="M40 80 L60 80" stroke="hsl(var(--primary))" strokeWidth="4"/>
+      {/* Sun */}
+      <circle cx="70" cy="30" r="5" fill="hsl(var(--primary))" />
+      {/* Back peak */}
+      <path d="M14 78 L40 40 L56 60 L70 44 L86 78 Z" fill="hsl(var(--primary) / 0.22)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="round"/>
+      {/* Snow caps */}
+      <path d="M34 48 L40 40 L46 49 L43 49 L40 45 L37 49 Z" fill="hsl(var(--primary))" />
+      <path d="M65 51 L70 44 L75 51 L72 51 L70 48 L68 51 Z" fill="hsl(var(--primary))" />
+      {/* Ground line */}
+      <line x1="12" y1="78" x2="88" y2="78" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
   ),
   cooking: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
       <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.1)" />
-      <ellipse cx="50" cy="55" rx="30" ry="20" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2"/>
-      <path d="M35 40 Q50 25 65 40" stroke="hsl(var(--primary))" strokeWidth="2" fill="none"/>
-      <circle cx="45" cy="35" r="2" fill="hsl(var(--primary))" opacity="0.6"/>
-      <circle cx="55" cy="38" r="2" fill="hsl(var(--primary))" opacity="0.6"/>
+      {/* Steam curls */}
+      <path d="M40 20 Q44 25 40 30 Q36 35 40 40" stroke="hsl(var(--primary))" strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <path d="M50 16 Q54 21 50 26 Q46 31 50 36" stroke="hsl(var(--primary))" strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <path d="M60 20 Q64 25 60 30 Q56 35 60 40" stroke="hsl(var(--primary))" strokeWidth="2" fill="none" strokeLinecap="round"/>
+      {/* Pot lid */}
+      <rect x="22" y="48" width="56" height="6" rx="2" fill="hsl(var(--primary))"/>
+      <circle cx="50" cy="46" r="2.5" fill="hsl(var(--primary))" />
+      {/* Pot body */}
+      <path d="M26 54 L74 54 L70 82 L30 82 Z" fill="hsl(var(--primary) / 0.22)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="round"/>
+      {/* Pot side handles */}
+      <path d="M26 60 L20 60 L20 70 L26 70" stroke="hsl(var(--primary))" strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <path d="M74 60 L80 60 L80 70 L74 70" stroke="hsl(var(--primary))" strokeWidth="2" fill="none" strokeLinecap="round"/>
     </svg>
   ),
   museum: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
       <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.1)" />
-      <rect x="20" y="35" width="60" height="45" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2"/>
-      <rect x="25" y="40" width="20" height="25" fill="hsl(var(--primary))" opacity="0.4"/>
-      <rect x="55" y="40" width="20" height="25" fill="hsl(var(--primary))" opacity="0.4"/>
-      <line x1="50" y1="25" x2="50" y2="35" stroke="hsl(var(--primary))" strokeWidth="2"/>
+      {/* Pediment */}
+      <path d="M16 42 L50 22 L84 42 Z" fill="hsl(var(--primary) / 0.25)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="round"/>
+      {/* Architrave */}
+      <rect x="18" y="42" width="64" height="6" fill="hsl(var(--primary))" />
+      {/* Columns */}
+      <rect x="24" y="48" width="7" height="28" fill="hsl(var(--primary) / 0.35)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      <rect x="39" y="48" width="7" height="28" fill="hsl(var(--primary) / 0.35)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      <rect x="54" y="48" width="7" height="28" fill="hsl(var(--primary) / 0.35)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      <rect x="69" y="48" width="7" height="28" fill="hsl(var(--primary) / 0.35)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      {/* Base/steps */}
+      <rect x="14" y="76" width="72" height="5" fill="hsl(var(--primary))" />
     </svg>
   ),
   cocktails: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
       <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.1)" />
-      <path d="M30 35 L50 70 L70 35 Z" fill="hsl(var(--primary) / 0.3)" stroke="hsl(var(--primary))" strokeWidth="2"/>
-      <line x1="50" y1="70" x2="50" y2="85" stroke="hsl(var(--primary))" strokeWidth="3"/>
-      <circle cx="65" cy="40" r="4" fill="hsl(var(--primary))"/>
-      <path d="M70 35 Q75 30 80 35" stroke="hsl(var(--primary))" strokeWidth="1.5" fill="none"/>
+      {/* Glass cone */}
+      <path d="M24 28 L76 28 L52 62 L48 62 Z" fill="hsl(var(--primary) / 0.25)" stroke="hsl(var(--primary))" strokeWidth="2.2" strokeLinejoin="round"/>
+      {/* Liquid line */}
+      <line x1="30" y1="36" x2="70" y2="36" stroke="hsl(var(--primary))" strokeWidth="1.4" />
+      {/* Stem */}
+      <line x1="50" y1="62" x2="50" y2="82" stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round"/>
+      {/* Base */}
+      <line x1="36" y1="84" x2="64" y2="84" stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round"/>
+      {/* Olive pick */}
+      <line x1="56" y1="22" x2="62" y2="40" stroke="hsl(var(--primary))" strokeWidth="1.4"/>
+      <circle cx="59" cy="31" r="3.2" fill="hsl(var(--primary))" />
     </svg>
   ),
   stargazing: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
       <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.1)" />
-      <circle cx="30" cy="30" r="2" fill="hsl(var(--primary))"/>
-      <circle cx="70" cy="35" r="2" fill="hsl(var(--primary))"/>
-      <circle cx="55" cy="25" r="2.5" fill="hsl(var(--primary))"/>
-      <circle cx="40" cy="50" r="1.5" fill="hsl(var(--primary))"/>
-      <circle cx="65" cy="55" r="2" fill="hsl(var(--primary))"/>
-      <path d="M30 70 Q50 60 70 70" stroke="hsl(var(--primary))" strokeWidth="2" fill="none"/>
-      <circle cx="50" cy="62" r="8" fill="hsl(var(--primary) / 0.3)"/>
+      {/* Crescent moon */}
+      <path d="M58 24 A 22 22 0 1 0 76 60 A 17 17 0 1 1 58 24 Z" fill="hsl(var(--primary) / 0.3)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="round"/>
+      {/* Stars */}
+      <path d="M26 32 L28 37 L33 39 L28 41 L26 46 L24 41 L19 39 L24 37 Z" fill="hsl(var(--primary))" />
+      <path d="M30 70 L31 73 L34 74 L31 75 L30 78 L29 75 L26 74 L29 73 Z" fill="hsl(var(--primary))" />
+      <path d="M70 80 L71 83 L74 84 L71 85 L70 88 L69 85 L66 84 L69 83 Z" fill="hsl(var(--primary))" />
+      <circle cx="42" cy="22" r="1.5" fill="hsl(var(--primary))" />
+      <circle cx="20" cy="60" r="1.5" fill="hsl(var(--primary))" />
+      <circle cx="48" cy="78" r="1.5" fill="hsl(var(--primary))" />
+    </svg>
+  ),
+  custom: () => (
+    <svg viewBox="0 0 100 100" className="w-20 h-20">
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.1)" />
+      {/* Pencil body */}
+      <path d="M30 78 L26 74 L60 40 L66 46 Z" fill="hsl(var(--primary) / 0.3)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="round"/>
+      {/* Pencil tip */}
+      <path d="M30 78 L22 80 L24 72 Z" fill="hsl(var(--primary))" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="round"/>
+      {/* Eraser end */}
+      <path d="M60 40 L66 46 L72 40 L66 34 Z" fill="hsl(var(--primary))" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="round"/>
+      {/* Sparkle */}
+      <path d="M76 60 L78 65 L83 67 L78 69 L76 74 L74 69 L69 67 L74 65 Z" fill="hsl(var(--primary))"/>
+      <circle cx="80" cy="50" r="2" fill="hsl(var(--primary))" />
+      <circle cx="68" cy="76" r="1.5" fill="hsl(var(--primary))" />
     </svg>
   ),
 };
@@ -312,6 +381,7 @@ function Where() {
     { id: "museum", label: "Museum or Gallery", icon: Camera, Illustration: DateIllustrations.museum },
     { id: "cocktails", label: "Cocktails & Drinks", icon: Wine, Illustration: DateIllustrations.cocktails },
     { id: "stargazing", label: "Stargazing", icon: Moon, Illustration: DateIllustrations.stargazing },
+    { id: "custom", label: "What did you have in mind?", icon: Sparkles, Illustration: DateIllustrations.custom },
   ];
 
   function handleSelect(id: string) {
@@ -321,6 +391,8 @@ function Where() {
       navigate(`/where/restaurant?${params.toString()}`);
     } else if (id === "cinema") {
       navigate(`/where/cinema?${params.toString()}`);
+    } else if (id === "custom") {
+      navigate(`/where/custom?${params.toString()}`);
     } else {
       navigate(`/where/${id}?${params.toString()}`);
     }
@@ -869,6 +941,94 @@ function WhereGeneric({ params: routeParams }: { params: { typeId: string } }) {
   );
 }
 
+// Custom Sub-Page — user types in their own date idea
+function WhereCustom() {
+  const [, navigate] = useLocation();
+  const search = useSearch();
+  const [idea, setIdea] = React.useState("");
+  const [place, setPlace] = React.useState("");
+
+  function handleContinue() {
+    const trimmedIdea = idea.trim();
+    if (!trimmedIdea) return;
+    const params = new URLSearchParams(search);
+    params.set("title", trimmedIdea);
+    params.set("venueId", "custom");
+    params.set("location", place.trim());
+    navigate(`/confirm?${params.toString()}`);
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-5 py-12" data-testid="where-custom-page">
+      <div className="w-full max-w-md">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/where?" + search)}
+          className="mb-4 -ml-2"
+          data-testid="back-button"
+        >
+          ← Back
+        </Button>
+
+        <div className="flex items-center gap-3 mb-6">
+          <DateIllustrations.custom />
+          <div>
+            <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-foreground leading-tight">
+              Your idea
+            </h1>
+            <p className="text-muted-foreground text-sm">Tell me what you have in mind</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" /> What sounds fun?
+            </label>
+            <input
+              type="text"
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleContinue(); }}
+              placeholder="e.g. Bowling, mini golf, paint and sip..."
+              maxLength={120}
+              autoFocus
+              className="w-full h-14 rounded-2xl border border-border bg-card px-4 text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/40"
+              data-testid="custom-idea-input"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary" /> Where? <span className="text-muted-foreground/70 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={place}
+              onChange={(e) => setPlace(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleContinue(); }}
+              placeholder="A place, neighborhood, or vibe"
+              maxLength={120}
+              className="w-full h-14 rounded-2xl border border-border bg-card px-4 text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/40"
+              data-testid="custom-place-input"
+            />
+          </div>
+        </div>
+
+        <Button
+          size="lg"
+          className="w-full h-14 rounded-2xl text-base font-semibold mt-8 gap-2"
+          onClick={handleContinue}
+          disabled={!idea.trim()}
+          data-testid="continue-button"
+        >
+          Continue <ChevronRight className="w-5 h-5" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // Confirm Page
 function Confirm() {
   const search = useSearch();
@@ -1134,6 +1294,7 @@ function App() {
             <Route path="/where/restaurant" component={WhereRestaurant} />
             <Route path="/where/restaurant/business" component={WhereRestaurantBusiness} />
             <Route path="/where/cinema" component={WhereCinema} />
+            <Route path="/where/custom" component={WhereCustom} />
             <Route path="/where/:typeId" component={WhereGeneric} />
             <Route path="/confirm" component={Confirm} />
           </Switch>
