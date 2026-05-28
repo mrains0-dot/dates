@@ -4,7 +4,8 @@ import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-quer
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { Heart, CalendarIcon, Clock, ChevronRight, Check, MapPin, Utensils, Film, TreePine, ChefHat, Wine, Sparkles, Music, Camera, Sun, Moon, Send, Loader2, Mail, Flame, Soup, Beef, Fish } from "lucide-react";
+import { Heart, CalendarIcon, Clock, ChevronRight, Check, MapPin, Utensils, Film, TreePine, ChefHat, Wine, Sparkles, Music, Camera, Sun, Moon, Send, Loader2, Mail, Flame, Soup, Beef, Fish, Waves, Flower, Flower2, Mountain, Palmtree, Trees, Sunset, Snail, Footprints, Zap, Wheat, Sandwich, Cake, Pizza, PartyPopper, Palette, Frame, Landmark, Telescope, Brush, Coffee, BookOpen, Lock, Building2, Grape, GlassWater, Martini, Citrus, Star, Globe, Droplets, Tent } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import confetti from "canvas-confetti";
 
 const API_BASE = (import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || "") as string;
@@ -786,7 +787,7 @@ function WhereCinema() {
 type DateGroup = {
   label: string;
   key: string;
-  items: { id: string; label: string; emoji: string; desc?: string }[];
+  items: { id: string; label: string; icon: string; desc?: string }[];
 };
 type DateOptions = { title: string; subtitle: string; groups: DateGroup[] };
 
@@ -803,6 +804,16 @@ const ILLUSTRATION_MAP: Record<string, () => JSX.Element> = {
   museum: DateIllustrations.museum,
   cocktails: DateIllustrations.cocktails,
   stargazing: DateIllustrations.stargazing,
+};
+
+// Lucide icon registry for sub-page option items (themed, simple)
+const SUB_ICONS: Record<string, LucideIcon> = {
+  Waves, Flower, Flower2, TreePine, Mountain, Palmtree, Trees, Sunset,
+  Snail, Footprints, Zap, Wheat, Sandwich, Cake, Wine, Utensils, Pizza,
+  Fish, Soup, Flame, PartyPopper, Music, Palette, Frame, Camera,
+  Landmark, Telescope, Brush, Coffee, BookOpen, Lock, Building2, Grape,
+  GlassWater, Martini, Citrus, Sparkles, Moon, Star, Globe, Tent,
+  Droplets, Heart,
 };
 
 function WhereGeneric({ params: routeParams }: { params: { typeId: string } }) {
@@ -891,6 +902,7 @@ function WhereGeneric({ params: routeParams }: { params: { typeId: string } }) {
                 <div className="grid grid-cols-2 gap-2.5">
                   {group.items.map((item) => {
                     const isSelected = selections[group.key] === item.id;
+                    const ItemIcon = SUB_ICONS[item.icon] || Heart;
                     return (
                       <button
                         key={item.id}
@@ -905,7 +917,11 @@ function WhereGeneric({ params: routeParams }: { params: { typeId: string } }) {
                         }`}
                       >
                         <div className="flex items-center gap-2 w-full">
-                          <span className="text-xl">{item.emoji}</span>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            isSelected ? "bg-primary/15" : "bg-primary/8"
+                          }`}>
+                            <ItemIcon className={`w-4 h-4 ${isSelected ? "text-primary" : "text-primary/70"}`} strokeWidth={1.75} />
+                          </div>
                           <span className={`text-sm font-medium flex-1 ${isSelected ? "text-primary" : "text-foreground"}`}>
                             {item.label}
                           </span>
@@ -914,7 +930,7 @@ function WhereGeneric({ params: routeParams }: { params: { typeId: string } }) {
                           )}
                         </div>
                         {item.desc && (
-                          <span className="text-[11px] text-muted-foreground leading-snug">
+                          <span className="text-[11px] text-muted-foreground leading-snug pl-10">
                             {item.desc}
                           </span>
                         )}
