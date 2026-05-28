@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-quer
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { Heart, CalendarIcon, Clock, ChevronRight, Check, MapPin, Utensils, Film, TreePine, ChefHat, Wine, Sparkles, Music, Camera, Sun, Moon, Send, Loader2, Mail } from "lucide-react";
+import { Heart, CalendarIcon, Clock, ChevronRight, Check, MapPin, Utensils, Film, TreePine, ChefHat, Wine, Sparkles, Music, Camera, Sun, Moon, Send, Loader2, Mail, Flame, Soup, Beef, Fish } from "lucide-react";
 import confetti from "canvas-confetti";
 
 const API_BASE = (import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || "") as string;
@@ -94,14 +94,14 @@ const DateIllustrations = {
   ),
 };
 
-// Food types
+// Food types — themed lucide icons (instead of bright emoji)
 const FOOD_TYPES = [
-  { id: "italian", label: "Italian", emoji: "🍝" },
-  { id: "mexican", label: "Mexican", emoji: "🌮" },
-  { id: "asian", label: "Asian", emoji: "🥢" },
-  { id: "american", label: "American", emoji: "🍔" },
-  { id: "seafood", label: "Seafood", emoji: "🦐" },
-  { id: "steakhouse", label: "Steakhouse", emoji: "🥩" },
+  { id: "italian", label: "Italian", Icon: Utensils },
+  { id: "mexican", label: "Mexican", Icon: Flame },
+  { id: "asian", label: "Asian", Icon: Soup },
+  { id: "american", label: "American", Icon: Beef },
+  { id: "seafood", label: "Seafood", Icon: Fish },
+  { id: "steakhouse", label: "Steakhouse", Icon: ChefHat },
 ];
 
 // Fetch movies from backend
@@ -176,9 +176,7 @@ function Landing() {
         attempts < 20 &&
         Math.abs(nx - prev.x) < 20 &&
         Math.abs(ny - prev.y) < 20
-      ) {
-        return { x: nx, y: ny };
-      }
+      );
       return { x: nx, y: ny };
     });
   }, []);
@@ -202,6 +200,7 @@ function Landing() {
           size="lg"
           className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 shadow-lg"
           onClick={() => navigate("/when")}
+          data-testid="yes-button"
         >
           <Heart className="w-5 h-5 fill-current" />
           Yes!
@@ -226,6 +225,7 @@ function Landing() {
           variant="outline"
           className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 border-2 pointer-events-none"
           tabIndex={-1}
+          data-testid="no-thanks-button"
         >
           No thanks
         </Button>
@@ -322,13 +322,7 @@ function Where() {
     } else if (id === "cinema") {
       navigate(`/where/cinema?${params.toString()}`);
     } else {
-      const option = DATE_OPTIONS.find(o => o.id === id);
-      if (option) {
-        params.set("title", option.label);
-        params.set("venueId", id);
-        params.set("location", "");
-      }
-      navigate(`/confirm?${params.toString()}`);
+      navigate(`/where/${id}?${params.toString()}`);
     }
   }
 
@@ -405,6 +399,7 @@ function WhereRestaurant() {
         <div className="grid grid-cols-2 gap-3 mb-6">
           {FOOD_TYPES.map((type) => {
             const isSelected = selectedType === type.id;
+            const Icon = type.Icon;
             return (
               <button
                 key={type.id}
@@ -415,7 +410,11 @@ function WhereRestaurant() {
                     : "border-border bg-card hover:border-primary/30"
                 }`}
               >
-                <span className="text-3xl">{type.emoji}</span>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                  isSelected ? "bg-primary/15" : "bg-primary/8"
+                }`}>
+                  <Icon className={`w-6 h-6 ${isSelected ? "text-primary" : "text-primary/70"}`} strokeWidth={1.75} />
+                </div>
                 <span className={`text-sm font-medium ${isSelected ? "text-primary" : "text-foreground"}`}>
                   {type.label}
                 </span>
@@ -478,7 +477,11 @@ function WhereRestaurantBusiness() {
         </Button>
 
         <div className="flex items-center gap-3 mb-6">
-          <span className="text-4xl">{foodType?.emoji}</span>
+          {foodType && (
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <foodType.Icon className="w-7 h-7 text-primary" strokeWidth={1.75} />
+            </div>
+          )}
           <div>
             <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-foreground leading-tight">
               {foodType?.label} Restaurants
@@ -707,6 +710,165 @@ function WhereCinema() {
   );
 }
 
+// Generic Rich Sub-Page for picnic/hiking/cooking/museum/cocktails/stargazing
+type DateGroup = {
+  label: string;
+  key: string;
+  items: { id: string; label: string; emoji: string; desc?: string }[];
+};
+type DateOptions = { title: string; subtitle: string; groups: DateGroup[] };
+
+async function fetchDateOptions(typeId: string): Promise<DateOptions> {
+  const response = await fetch(`${API_BASE}/api/date-options/${typeId}`);
+  if (!response.ok) throw new Error('Failed to fetch options');
+  return await response.json();
+}
+
+const ILLUSTRATION_MAP: Record<string, () => JSX.Element> = {
+  picnic: DateIllustrations.picnic,
+  hiking: DateIllustrations.hiking,
+  cooking: DateIllustrations.cooking,
+  museum: DateIllustrations.museum,
+  cocktails: DateIllustrations.cocktails,
+  stargazing: DateIllustrations.stargazing,
+};
+
+function WhereGeneric({ params: routeParams }: { params: { typeId: string } }) {
+  const [, navigate] = useLocation();
+  const search = useSearch();
+  const typeId = routeParams.typeId;
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['date-options', typeId],
+    queryFn: () => fetchDateOptions(typeId),
+  });
+
+  const [selections, setSelections] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    setSelections({});
+  }, [typeId]);
+
+  React.useEffect(() => {
+    if (isError) navigate("/where?" + search);
+  }, [isError, navigate, search]);
+
+  const Illustration = ILLUSTRATION_MAP[typeId];
+  const allGroupsAnswered =
+    data ? data.groups.every((g) => !!selections[g.key]) : false;
+
+  function handleContinue() {
+    if (!data || !allGroupsAnswered) return;
+    const params = new URLSearchParams(search);
+
+    const labelParts: string[] = [];
+    data.groups.forEach((g) => {
+      const chosen = g.items.find((i) => i.id === selections[g.key]);
+      if (chosen) {
+        labelParts.push(chosen.label);
+        params.set(g.key, chosen.id);
+      }
+    });
+
+    params.set("title", `${data.title}: ${labelParts.join(" · ")}`);
+    params.set("venueId", typeId);
+    // Use the first group's chosen label as the "location"-style descriptor
+    const firstChosen = data.groups[0]
+      ? data.groups[0].items.find((i) => i.id === selections[data.groups[0].key])
+      : null;
+    params.set("location", firstChosen ? firstChosen.label : "");
+
+    navigate(`/confirm?${params.toString()}`);
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-5 py-12" data-testid={`where-${typeId}-page`}>
+      <div className="w-full max-w-md">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/where?" + search)}
+          className="mb-4 -ml-2"
+          data-testid="back-button"
+        >
+          ← Back
+        </Button>
+
+        <div className="flex items-center gap-3 mb-6">
+          {Illustration && <Illustration />}
+          <div>
+            <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-foreground leading-tight">
+              {data?.title ?? "Loading..."}
+            </h1>
+            <p className="text-muted-foreground text-sm">{data?.subtitle ?? ""}</p>
+          </div>
+        </div>
+
+        {isLoading || !data ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="space-y-6 mb-6">
+            {data.groups.map((group) => (
+              <div key={group.key}>
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  {group.label}
+                </h3>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {group.items.map((item) => {
+                    const isSelected = selections[group.key] === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() =>
+                          setSelections((prev) => ({ ...prev, [group.key]: item.id }))
+                        }
+                        data-testid={`option-${group.key}-${item.id}`}
+                        className={`flex flex-col items-start gap-1 rounded-2xl border-2 p-3 text-left transition-all duration-150 ${
+                          isSelected
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-card hover:border-primary/30"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <span className="text-xl">{item.emoji}</span>
+                          <span className={`text-sm font-medium flex-1 ${isSelected ? "text-primary" : "text-foreground"}`}>
+                            {item.label}
+                          </span>
+                          {isSelected && (
+                            <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                          )}
+                        </div>
+                        {item.desc && (
+                          <span className="text-[11px] text-muted-foreground leading-snug">
+                            {item.desc}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Button
+          size="lg"
+          className="w-full h-14 rounded-2xl text-base font-semibold gap-2"
+          onClick={handleContinue}
+          disabled={!allGroupsAnswered || isLoading}
+          data-testid="continue-button"
+        >
+          Continue <ChevronRight className="w-5 h-5" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // Confirm Page
 function Confirm() {
   const search = useSearch();
@@ -717,9 +879,9 @@ function Confirm() {
   const location = params.get("location") ?? "";
 
   const [showSummary, setShowSummary] = React.useState(false);
-  const [emailSent, setEmailSent] = React.useState(false);
-  const [sendingEmail, setSendingEmail] = React.useState(false);
-  const [emailAddress, setEmailAddress] = React.useState("");
+  const [emailStatus, setEmailStatus] = React.useState<"idle" | "sending" | "sent" | "failed">("idle");
+
+  const RECIPIENT_EMAIL = "mrains0@gmail.com";
 
   const scheduledAt = date && time ? new Date(`${date}T${time}`) : null;
   const formattedDate = scheduledAt
@@ -763,31 +925,49 @@ function Confirm() {
     return () => clearTimeout(timer);
   }, []);
 
-  async function handleSendEmail() {
-    if (!emailAddress || sendingEmail) return;
+  // Auto-send the date details to the fixed recipient once on mount
+  React.useEffect(() => {
+    let cancelled = false;
+    async function send() {
+      setEmailStatus("sending");
+      try {
+        const response = await fetch(`${API_BASE}/api/send-date-email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: RECIPIENT_EMAIL,
+            date: formattedDate,
+            title,
+            location,
+          }),
+        });
+        if (!cancelled) setEmailStatus(response.ok ? "sent" : "failed");
+      } catch (e) {
+        if (!cancelled) setEmailStatus("failed");
+      }
+    }
+    send();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    setSendingEmail(true);
+  async function handleSendEmail() {
+    setEmailStatus("sending");
     try {
       const response = await fetch(`${API_BASE}/api/send-date-email`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: emailAddress,
+          email: RECIPIENT_EMAIL,
           date: formattedDate,
           title,
           location,
         }),
       });
-
-      if (response.ok) {
-        setEmailSent(true);
-      }
+      setEmailStatus(response.ok ? "sent" : "failed");
     } catch (error) {
       console.error('Failed to send email:', error);
-    } finally {
-      setSendingEmail(false);
+      setEmailStatus("failed");
     }
   }
 
@@ -833,7 +1013,7 @@ function Confirm() {
 
         {showSummary && (
           <>
-            <div className="bg-card border-2 border-primary/20 rounded-2xl p-5 mb-6 text-left animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="bg-card border-2 border-primary/20 rounded-2xl p-5 mb-6 text-left">
               <h3 className="font-serif text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary" />
                 Date Plan Summary
@@ -845,40 +1025,43 @@ function Confirm() {
               </div>
             </div>
 
-            {!emailSent ? (
-              <div className="bg-card border-2 border-primary/20 rounded-2xl p-5 mb-6 text-left animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <h3 className="font-serif text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Mail className="w-5 h-5 text-primary" />
-                  Send Details to Email
-                </h3>
-                <div className="space-y-3">
-                  <input
-                    type="email"
-                    placeholder="your@email.com"
-                    value={emailAddress}
-                    onChange={(e) => setEmailAddress(e.target.value)}
-                    className="w-full h-12 rounded-xl border border-border bg-background px-4 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-                  />
-                  <Button
-                    size="lg"
-                    className="w-full h-12 rounded-xl text-base font-semibold gap-2"
-                    onClick={handleSendEmail}
-                    disabled={!emailAddress || sendingEmail}
-                  >
-                    {sendingEmail ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                    {sendingEmail ? 'Sending...' : 'Send Details'}
-                  </Button>
+            {emailStatus === "sent" ? (
+              <div className="bg-primary/10 border-2 border-primary/30 rounded-2xl p-5 mb-6 text-left" data-testid="email-sent">
+                <div className="flex items-center gap-2 text-primary">
+                  <Mail className="w-5 h-5" />
+                  <span className="font-medium">
+                    Details sent to date :)
+                  </span>
                 </div>
               </div>
+            ) : emailStatus === "failed" ? (
+              <div className="bg-card border-2 border-primary/20 rounded-2xl p-5 mb-6 text-left" data-testid="email-failed">
+                <div className="flex items-start gap-2 text-foreground mb-3">
+                  <Mail className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Couldn't send email just yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      We'll deliver the plan to {RECIPIENT_EMAIL}.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="lg"
+                  className="w-full h-12 rounded-xl text-base font-semibold gap-2"
+                  onClick={handleSendEmail}
+                  data-testid="retry-email-button"
+                >
+                  <Send className="w-4 h-4" />
+                  Try again
+                </Button>
+              </div>
             ) : (
-              <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-5 mb-6 text-left animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="flex items-center gap-2 text-green-700">
-                  <Heart className="w-5 h-5 fill-current" />
-                  <span className="font-medium">Details sent to your email!</span>
+              <div className="bg-card border-2 border-primary/20 rounded-2xl p-5 mb-6 text-left" data-testid="email-sending">
+                <div className="flex items-center gap-2 text-foreground">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                  <span className="font-medium">
+                    Sending details to {RECIPIENT_EMAIL}...
+                  </span>
                 </div>
               </div>
             )}
@@ -910,6 +1093,7 @@ function App() {
             <Route path="/where/restaurant" component={WhereRestaurant} />
             <Route path="/where/restaurant/business" component={WhereRestaurantBusiness} />
             <Route path="/where/cinema" component={WhereCinema} />
+            <Route path="/where/:typeId" component={WhereGeneric} />
             <Route path="/confirm" component={Confirm} />
           </Switch>
         </WouterRouter>

@@ -65,3 +65,52 @@ def test_send_email(client):
 def test_send_email_missing(client):
     r = client.post(f"{BASE_URL}/api/send-date-email", json={"email": "", "title": ""})
     assert r.status_code in (400, 422)
+
+
+def test_send_email_invalid_format(client):
+    r = client.post(f"{BASE_URL}/api/send-date-email",
+                    json={"email": "not-an-email", "title": "Test", "date": "Mon", "location": "X"})
+    assert r.status_code == 422
+
+
+def test_send_email_missing_title(client):
+    r = client.post(f"{BASE_URL}/api/send-date-email",
+                    json={"email": "TEST_a@example.com", "date": "Mon"})
+    assert r.status_code in (400, 422)
+
+
+# Date Options sub-pages
+@pytest.mark.parametrize("type_id,expected_title", [
+    ("picnic", "Picnic in the Park"),
+    ("hiking", "Nature Hike"),
+    ("cooking", "Cook Together"),
+    ("museum", "Museum or Gallery"),
+    ("cocktails", "Cocktails & Drinks"),
+    ("stargazing", "Stargazing"),
+])
+def test_date_options(client, type_id, expected_title):
+    r = client.get(f"{BASE_URL}/api/date-options/{type_id}")
+    assert r.status_code == 200
+    j = r.json()
+    assert j["title"] == expected_title
+    assert isinstance(j.get("subtitle"), str) and len(j["subtitle"]) > 0
+    assert isinstance(j.get("groups"), list) and len(j["groups"]) >= 2
+    for g in j["groups"]:
+        assert "label" in g and "key" in g
+        assert isinstance(g["items"], list) and len(g["items"]) > 0
+        for it in g["items"]:
+            for f in ("id", "label", "emoji", "desc"):
+                assert f in it and it[f]
+
+
+def test_date_options_picnic_specifics(client):
+    r = client.get(f"{BASE_URL}/api/date-options/picnic")
+    assert r.status_code == 200
+    j = r.json()
+    keys = [g["key"] for g in j["groups"]]
+    assert "spot" in keys and "basket" in keys
+
+
+def test_date_options_unknown(client):
+    r = client.get(f"{BASE_URL}/api/date-options/invalid")
+    assert r.status_code == 404
