@@ -888,6 +888,12 @@ function Confirm() {
     ? scheduledAt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + ' at ' + scheduledAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
     : null;
 
+  // Unique fingerprint per date plan — used to dedupe sends across mounts/refreshes
+  const planKey = React.useMemo(
+    () => `dp:${RECIPIENT_EMAIL}|${formattedDate ?? ''}|${title}|${location}`,
+    [formattedDate, title, location],
+  );
+
   React.useEffect(() => {
     const duration = 3000;
     const animationEnd = Date.now() + duration;
@@ -925,9 +931,31 @@ function Confirm() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Auto-send the date details to the fixed recipient once on mount
+  // Auto-send the date details to the fixed recipient — only ONCE per unique plan
   React.useEffect(() => {
+    // Already sent for this plan in a previous visit → mark as sent, don't resend
+    try {
+      if (localStorage.getItem(planKey) === "sent") {
+        setEmailStatus("sent");
+        return;
+      }
+    } catch {
+      // localStorage unavailable — fall through and send
+    }
+
+    // In-flight guard for this mount (handles React 18 StrictMode double-invoke / HMR)
     let cancelled = false;
+    const inFlightKey = `${planKey}:inflight`;
+    try {
+      if (sessionStorage.getItem(inFlightKey) === "1") {
+        setEmailStatus("sending");
+        return;
+      }
+      sessionStorage.setItem(inFlightKey, "1");
+    } catch {
+      // ignore
+    }
+
     async function send() {
       setEmailStatus("sending");
       try {
@@ -941,15 +969,23 @@ function Confirm() {
             location,
           }),
         });
-        if (!cancelled) setEmailStatus(response.ok ? "sent" : "failed");
+        if (cancelled) return;
+        if (response.ok) {
+          setEmailStatus("sent");
+          try { localStorage.setItem(planKey, "sent"); } catch { /* ignore */ }
+        } else {
+          setEmailStatus("failed");
+        }
       } catch (e) {
         if (!cancelled) setEmailStatus("failed");
+      } finally {
+        try { sessionStorage.removeItem(inFlightKey); } catch { /* ignore */ }
       }
     }
     send();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [planKey]);
 
   async function handleSendEmail() {
     setEmailStatus("sending");
@@ -964,7 +1000,12 @@ function Confirm() {
           location,
         }),
       });
-      setEmailStatus(response.ok ? "sent" : "failed");
+      if (response.ok) {
+        setEmailStatus("sent");
+        try { localStorage.setItem(planKey, "sent"); } catch { /* ignore */ }
+      } else {
+        setEmailStatus("failed");
+      }
     } catch (error) {
       console.error('Failed to send email:', error);
       setEmailStatus("failed");
