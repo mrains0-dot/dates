@@ -85,14 +85,35 @@ async def fetch_weather(lat: float, lon: float, date_iso: Optional[str] = None) 
     }
 
 
-async def fetch_nearby(lat: float, lon: float, date_type: str, radius_m: int = 8000, limit: int = 15) -> list:
+CUISINE_OVERPASS_MAP = {
+    "italian": '"cuisine"~"italian"',
+    "mexican": '"cuisine"~"mexican|tex-mex"',
+    "asian": '"cuisine"~"asian|chinese|japanese|thai|vietnamese|korean|sushi|ramen|indian"',
+    "american": '"cuisine"~"american|burger|barbecue|bbq|diner"',
+    "seafood": '"cuisine"~"seafood|fish"',
+    "steakhouse": '"cuisine"~"steak"',
+}
+
+
+async def fetch_nearby(lat: float, lon: float, date_type: str, radius_m: int = 8000,
+                       limit: int = 15, preferences: str = "") -> list:
     """Query OSM Overpass for nearby places of the given date-type, return list of {name, address, distance_m}."""
     tag = OSM_QUERY_FOR_TYPE.get(date_type) or OSM_QUERY_FOR_TYPE["custom"]
+
+    # Refine restaurant queries by cuisine when the preference matches a known type
+    cuisine_tag = ""
+    if date_type == "restaurant" and preferences:
+        pref_lower = preferences.lower().strip()
+        for key, tag_expr in CUISINE_OVERPASS_MAP.items():
+            if key in pref_lower:
+                cuisine_tag = f"[{tag_expr}]"
+                break
+
     query = f"""
 [out:json][timeout:20];
 (
-  node[{tag}](around:{radius_m},{lat},{lon});
-  way[{tag}](around:{radius_m},{lat},{lon});
+  node[{tag}]{cuisine_tag}(around:{radius_m},{lat},{lon});
+  way[{tag}]{cuisine_tag}(around:{radius_m},{lat},{lon});
 );
 out tags center {limit*3};
 """

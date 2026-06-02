@@ -619,7 +619,7 @@ type RecommendResponse = {
   recommendations: Recommendation[];
 };
 
-function RecommendPanel({ dateType }: { dateType: string }) {
+function RecommendPanel({ dateType, preferences }: { dateType: string; preferences?: string }) {
   const search = useSearch();
   const date = new URLSearchParams(search).get("date") || undefined;
   const [zip, setZip] = React.useState<string>(getZipCode());
@@ -636,7 +636,7 @@ function RecommendPanel({ dateType }: { dateType: string }) {
       const r = await fetch(`${API_BASE}/api/recommend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date_type: dateType, zip_code: z, date }),
+        body: JSON.stringify({ date_type: dateType, zip_code: z, date, preferences }),
       });
       if (!r.ok) throw new Error(await r.text());
       const d = (await r.json()) as RecommendResponse;
@@ -651,7 +651,7 @@ function RecommendPanel({ dateType }: { dateType: string }) {
   React.useEffect(() => {
     if (zip) load(zip);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zip, dateType, date]);
+  }, [zip, dateType, date, preferences]);
 
   if (!zip || editing) {
     return (
@@ -956,6 +956,8 @@ function WhereRestaurantBusiness() {
             <p className="text-muted-foreground text-sm">Budget-friendly and upscale options</p>
           </div>
         </div>
+
+        <RecommendPanel dateType="restaurant" preferences={foodType?.label || ""} />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">

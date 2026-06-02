@@ -487,7 +487,7 @@ async def recommend(payload: RecommendRequest):
         raise HTTPException(status_code=404, detail="Zip code not found")
 
     weather_task = fetch_weather(geo["lat"], geo["lon"], payload.date)
-    places_task = fetch_nearby(geo["lat"], geo["lon"], payload.date_type)
+    places_task = fetch_nearby(geo["lat"], geo["lon"], payload.date_type, preferences=payload.preferences or "")
     weather, places = await asyncio.gather(weather_task, places_task, return_exceptions=False)
 
     recommendations = []
