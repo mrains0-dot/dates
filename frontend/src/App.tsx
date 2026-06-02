@@ -1050,6 +1050,17 @@ function WhereRestaurantBusiness() {
   );
 }
 
+// Pokeball icon — themed inline SVG matching app's stroke style
+const Pokeball = ({ className = "" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h6" />
+    <path d="M15 12h6" />
+    <circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.1" fill="hsl(var(--card))" stroke="none" />
+  </svg>
+);
+
 // Cinema Sub-Page
 function WhereCinema() {
   const [, navigate] = useLocation();
@@ -1141,7 +1152,7 @@ function WhereCinema() {
                 : "bg-card border border-border text-muted-foreground hover:border-primary/30"
             }`}
           >
-            <Star className="w-4 h-4 inline mr-1.5" />
+            <Pokeball className="w-4 h-4 inline mr-1.5 -mt-0.5" />
             Anime
           </button>
         </div>
