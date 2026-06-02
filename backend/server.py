@@ -3,7 +3,7 @@ import uuid
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,7 +20,10 @@ MONGO_URL = os.environ["MONGO_URL"]
 DB_NAME = os.environ["DB_NAME"]
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
 resend.api_key = RESEND_API_KEY
+
+from recommend import geocode_zip, fetch_weather, fetch_nearby, rank_with_llm
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
@@ -42,6 +45,24 @@ class EmailRequest(BaseModel):
     date: Optional[str] = None
     title: str
     location: Optional[str] = None
+
+
+class AvailabilityWindow(BaseModel):
+    date: str  # YYYY-MM-DD
+    start: str  # HH:MM (24h)
+    end: str    # HH:MM (24h)
+
+
+class AvailabilityPayload(BaseModel):
+    user_id: str
+    windows: List[AvailabilityWindow]
+
+
+class RecommendRequest(BaseModel):
+    date_type: str
+    zip_code: str
+    date: Optional[str] = None
+    preferences: Optional[str] = ""
 
 
 # ---------- Seed Data ----------
@@ -421,3 +442,74 @@ async def send_date_email(payload: EmailRequest):
         await db.date_plans.insert_one(doc)
         logger.error(f"Resend send failed: {e}")
         raise HTTPException(status_code=502, detail=f"Failed to send email: {str(e)}")
+
+
+
+# ---------- Availability ----------
+@app.get("/api/availability/{user_id}")
+async def get_availability(user_id: str):
+    doc = await db.availability.find_one({"user_id": user_id}, {"_id": 0})
+    return doc or {"user_id": user_id, "windows": []}
+
+
+@app.post("/api/availability")
+async def save_availability(payload: AvailabilityPayload):
+    doc = {
+        "user_id": payload.user_id,
+        "windows": [w.model_dump() for w in payload.windows],
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.availability.update_one(
+        {"user_id": payload.user_id},
+        {"$set": doc},
+        upsert=True,
+    )
+    return {"success": True, "count": len(doc["windows"])}
+
+
+# ---------- Weather ----------
+@app.get("/api/weather")
+async def get_weather(zip_code: str = Query(...), date: Optional[str] = Query(None)):
+    geo = await geocode_zip(zip_code)
+    if not geo:
+        raise HTTPException(status_code=404, detail="Zip code not found")
+    forecast = await fetch_weather(geo["lat"], geo["lon"], date)
+    if not forecast:
+        raise HTTPException(status_code=502, detail="Weather unavailable")
+    return {"location": geo, "weather": forecast}
+
+
+# ---------- Nearby + AI Recommendations ----------
+@app.post("/api/recommend")
+async def recommend(payload: RecommendRequest):
+    geo = await geocode_zip(payload.zip_code)
+    if not geo:
+        raise HTTPException(status_code=404, detail="Zip code not found")
+
+    weather_task = fetch_weather(geo["lat"], geo["lon"], payload.date)
+    places_task = fetch_nearby(geo["lat"], geo["lon"], payload.date_type)
+    weather, places = await asyncio.gather(weather_task, places_task, return_exceptions=False)
+
+    recommendations = []
+    if places and EMERGENT_LLM_KEY:
+        try:
+            recommendations = await rank_with_llm(
+                EMERGENT_LLM_KEY, payload.date_type, payload.zip_code,
+                weather, places, payload.preferences or "",
+            )
+        except Exception as e:
+            logger.warning(f"LLM ranking failed, falling back to top-3 by distance: {e}")
+    # Fallback: top 3 closest if LLM failed or unavailable
+    if not recommendations and places:
+        recommendations = [{
+            "name": p["name"], "category": p["category"], "address": p["address"],
+            "distance_m": p["distance_m"],
+            "reason": "Closest match nearby.",
+        } for p in places[:3]]
+
+    return {
+        "location": geo,
+        "weather": weather,
+        "places_total": len(places),
+        "recommendations": recommendations,
+    }

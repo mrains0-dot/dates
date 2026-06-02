@@ -229,7 +229,66 @@ const getMovies = () => {
   return { newReleases, popularClassics: shuffled };
 };
 
-// Landing Page
+// ─── User-local storage helpers ──────────────────────────────────────────
+function getUserId(): string {
+  let uid = localStorage.getItem("dp:user-id");
+  if (!uid) {
+    uid = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+    localStorage.setItem("dp:user-id", uid);
+  }
+  return uid;
+}
+
+function getZipCode(): string {
+  return localStorage.getItem("dp:zip-code") || "";
+}
+function setZipCode(z: string) {
+  localStorage.setItem("dp:zip-code", z);
+}
+
+type AvailabilityWindow = { date: string; start: string; end: string };
+
+async function fetchAvailability(userId: string): Promise<AvailabilityWindow[]> {
+  const r = await fetch(`${API_BASE}/api/availability/${userId}`);
+  if (!r.ok) return [];
+  const d = await r.json();
+  return (d.windows || []) as AvailabilityWindow[];
+}
+
+async function saveAvailability(userId: string, windows: AvailabilityWindow[]) {
+  await fetch(`${API_BASE}/api/availability`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, windows }),
+  });
+}
+
+// Generate next 14 days
+function next14Days(): string[] {
+  const today = new Date();
+  return Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    return d.toISOString().slice(0, 10);
+  });
+}
+
+const TIME_SLOTS = [
+  "09:00", "10:00", "11:00", "12:00", "13:00", "14:00",
+  "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00",
+];
+
+// Is the given (date HH:MM) inside any availability window?
+function isAvailable(date: string, time: string, windows: AvailabilityWindow[]): boolean {
+  if (!windows.length) return true; // no availability set → don't block
+  return windows.some(
+    (w) => w.date === date && w.start <= time && time < w.end,
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────
+
+
 function Landing() {
   const [, navigate] = useLocation();
   const [pos, setPos] = React.useState({ x: 50, y: 82 });
@@ -309,6 +368,14 @@ function When() {
   const [, navigate] = useLocation();
   const [date, setDate] = React.useState("");
   const [time, setTime] = React.useState("");
+  const [windows, setWindows] = React.useState<AvailabilityWindow[]>([]);
+  const userId = React.useMemo(() => getUserId(), []);
+
+  React.useEffect(() => {
+    fetchAvailability(userId).then(setWindows).catch(() => {});
+  }, [userId]);
+
+  const conflict = date && time && windows.length > 0 && !isAvailable(date, time, windows);
 
   function handleContinue() {
     const params = new URLSearchParams();
@@ -318,9 +385,18 @@ function When() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-10">
       <div className="w-full max-w-sm">
-        <Heart className="w-10 h-10 text-primary fill-primary mb-6" />
+        <div className="flex items-center justify-between mb-6">
+          <Heart className="w-10 h-10 text-primary fill-primary" />
+          <button
+            onClick={() => navigate("/availability")}
+            className="text-xs font-medium text-primary/80 hover:text-primary inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 transition-colors"
+            data-testid="manage-availability-button"
+          >
+            <CalendarIcon className="w-3.5 h-3.5" /> My availability
+          </button>
+        </div>
 
         <h1 className="font-serif text-4xl sm:text-5xl font-semibold text-foreground mb-2 leading-tight">
           When?
@@ -338,6 +414,7 @@ function When() {
               min={new Date().toISOString().split("T")[0]}
               onChange={(e) => setDate(e.target.value)}
               className="w-full h-14 rounded-2xl border border-border bg-card px-4 text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/40"
+              data-testid="date-input"
             />
           </div>
 
@@ -350,8 +427,16 @@ function When() {
               value={time}
               onChange={(e) => setTime(e.target.value)}
               className="w-full h-14 rounded-2xl border border-border bg-card px-4 text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/40"
+              data-testid="time-input"
             />
           </div>
+
+          {conflict && (
+            <div className="rounded-2xl border-2 border-primary/30 bg-primary/8 px-4 py-3 text-sm text-primary flex items-start gap-2" data-testid="availability-conflict">
+              <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span>This time is outside your availability. You can still continue — or update <button onClick={() => navigate("/availability")} className="underline font-medium">My availability</button>.</span>
+            </div>
+          )}
         </div>
 
         <Button
@@ -359,6 +444,7 @@ function When() {
           className="w-full h-14 rounded-2xl text-base font-semibold mt-8 gap-2"
           onClick={handleContinue}
           disabled={!date || !time}
+          data-testid="continue-button"
         >
           Continue <ChevronRight className="w-5 h-5" />
         </Button>
@@ -366,6 +452,312 @@ function When() {
     </div>
   );
 }
+
+// ─── Availability Editor ─────────────────────────────────────────────────
+function Availability() {
+  const [, navigate] = useLocation();
+  const userId = React.useMemo(() => getUserId(), []);
+  const days = React.useMemo(() => next14Days(), []);
+  const [windows, setWindows] = React.useState<AvailabilityWindow[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
+  const [savedFlash, setSavedFlash] = React.useState(false);
+
+  React.useEffect(() => {
+    fetchAvailability(userId)
+      .then(setWindows)
+      .finally(() => setLoading(false));
+  }, [userId]);
+
+  function isSlotOn(date: string, time: string): boolean {
+    return windows.some((w) => w.date === date && w.start <= time && time < w.end);
+  }
+
+  function toggleSlot(date: string, time: string) {
+    // toggle a 1-hour window starting at `time`
+    const endHour = (parseInt(time.slice(0, 2)) + 1).toString().padStart(2, "0") + ":00";
+    setWindows((prev) => {
+      const idx = prev.findIndex((w) => w.date === date && w.start === time);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy.splice(idx, 1);
+        return copy;
+      }
+      return [...prev, { date, start: time, end: endHour }];
+    });
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await saveAvailability(userId, windows);
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1800);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const dayLabel = (iso: string) => {
+    const d = new Date(iso + "T00:00:00");
+    return {
+      weekday: d.toLocaleDateString("en-US", { weekday: "short" }),
+      day: d.getDate(),
+      month: d.toLocaleDateString("en-US", { month: "short" }),
+    };
+  };
+
+  return (
+    <div className="min-h-screen bg-background py-10 px-5" data-testid="availability-page">
+      <div className="w-full max-w-3xl mx-auto">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/when")}
+          className="mb-4 -ml-2"
+          data-testid="back-button"
+        >
+          ← Back
+        </Button>
+
+        <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-foreground leading-tight">
+          My availability
+        </h1>
+        <p className="text-muted-foreground text-sm mb-6">
+          Tap the hours you're free over the next 14 days. The "When?" picker will warn about conflicts.
+        </p>
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-7 h-7 text-primary animate-spin" />
+          </div>
+        ) : (
+          <div className="bg-card border border-border rounded-2xl p-4 overflow-x-auto">
+            <div className="grid" style={{ gridTemplateColumns: `auto repeat(${TIME_SLOTS.length}, minmax(38px,1fr))`, gap: "4px" }}>
+              {/* header row */}
+              <div />
+              {TIME_SLOTS.map((t) => (
+                <div key={t} className="text-[10px] text-muted-foreground text-center font-medium pb-1">
+                  {parseInt(t.slice(0, 2)) % 12 || 12}{parseInt(t.slice(0, 2)) >= 12 ? "p" : "a"}
+                </div>
+              ))}
+              {/* one row per day */}
+              {days.map((d) => {
+                const lbl = dayLabel(d);
+                return (
+                  <React.Fragment key={d}>
+                    <div className="text-xs text-foreground pr-2 py-1 flex flex-col items-end justify-center leading-tight">
+                      <span className="font-medium">{lbl.weekday}</span>
+                      <span className="text-muted-foreground">{lbl.month} {lbl.day}</span>
+                    </div>
+                    {TIME_SLOTS.map((t) => {
+                      const on = isSlotOn(d, t);
+                      return (
+                        <button
+                          key={`${d}-${t}`}
+                          onClick={() => toggleSlot(d, t)}
+                          data-testid={`slot-${d}-${t}`}
+                          className={`h-9 rounded-md border transition-colors text-[10px] font-medium ${
+                            on
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-card border-border text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                          }`}
+                          aria-pressed={on}
+                          aria-label={`${d} ${t}`}
+                        >
+                          {on ? "✓" : ""}
+                        </button>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 mt-6">
+          <Button
+            size="lg"
+            className="flex-1 h-14 rounded-2xl text-base font-semibold gap-2"
+            onClick={handleSave}
+            disabled={saving || loading}
+            data-testid="save-availability-button"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-5 h-5" />}
+            {savedFlash ? "Saved" : "Save availability"}
+          </Button>
+          {windows.length > 0 && (
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-14 rounded-2xl gap-2"
+              onClick={() => setWindows([])}
+              data-testid="clear-availability-button"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── AI Recommendation Panel ─────────────────────────────────────────────
+type Recommendation = {
+  name: string;
+  category: string;
+  address: string;
+  distance_m: number;
+  reason: string;
+};
+type RecommendResponse = {
+  location: { name: string; admin1: string; lat: number; lon: number };
+  weather: { summary: string; temp_max_f: number; temp_min_f: number; precip_chance_pct: number | null } | null;
+  places_total: number;
+  recommendations: Recommendation[];
+};
+
+function RecommendPanel({ dateType }: { dateType: string }) {
+  const search = useSearch();
+  const date = new URLSearchParams(search).get("date") || undefined;
+  const [zip, setZip] = React.useState<string>(getZipCode());
+  const [zipDraft, setZipDraft] = React.useState<string>("");
+  const [data, setData] = React.useState<RecommendResponse | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [editing, setEditing] = React.useState(false);
+
+  async function load(z: string) {
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await fetch(`${API_BASE}/api/recommend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date_type: dateType, zip_code: z, date }),
+      });
+      if (!r.ok) throw new Error(await r.text());
+      const d = (await r.json()) as RecommendResponse;
+      setData(d);
+    } catch (e: any) {
+      setError(e?.message?.slice(0, 120) || "Couldn't load nearby ideas.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  React.useEffect(() => {
+    if (zip) load(zip);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zip, dateType, date]);
+
+  if (!zip || editing) {
+    return (
+      <div className="bg-card border border-primary/20 rounded-2xl p-4 mb-6" data-testid="recommend-zip-form">
+        <div className="flex items-center gap-2 mb-2 text-primary text-sm font-medium">
+          <Sparkles className="w-4 h-4" />
+          Get tailored ideas near you
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">
+          Enter your zip code — we'll pull real nearby spots, check the weather, and pick the best matches.
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={zipDraft}
+            onChange={(e) => setZipDraft(e.target.value.replace(/[^0-9]/g, "").slice(0, 5))}
+            placeholder="e.g. 10001"
+            inputMode="numeric"
+            maxLength={5}
+            className="flex-1 h-11 rounded-xl border border-border bg-background px-3 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+            data-testid="zip-input"
+          />
+          <Button
+            size="default"
+            className="h-11 rounded-xl px-4"
+            disabled={zipDraft.length < 5}
+            onClick={() => {
+              setZipCode(zipDraft);
+              setZip(zipDraft);
+              setEditing(false);
+            }}
+            data-testid="zip-save-button"
+          >
+            Use this
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-card border border-primary/20 rounded-2xl p-4 mb-6" data-testid="recommend-panel">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2 text-primary text-sm font-medium">
+          <Sparkles className="w-4 h-4" />
+          Recommended near {data?.location.name || zip}
+        </div>
+        <button
+          onClick={() => { setZipDraft(zip); setEditing(true); }}
+          className="text-[11px] text-muted-foreground hover:text-primary underline-offset-2 hover:underline"
+          data-testid="change-zip-button"
+        >
+          change
+        </button>
+      </div>
+
+      {loading && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+          <Loader2 className="w-4 h-4 animate-spin text-primary" /> Finding ideas based on weather & nearby spots...
+        </div>
+      )}
+      {error && !loading && (
+        <p className="text-xs text-muted-foreground">{error}</p>
+      )}
+
+      {!loading && data && (
+        <>
+          {data.weather && (
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-3">
+              <Sun className="w-3.5 h-3.5 text-primary/70" />
+              {data.weather.summary}, {Math.round(data.weather.temp_min_f)}–{Math.round(data.weather.temp_max_f)}°F
+              {typeof data.weather.precip_chance_pct === "number" && (
+                <> · {data.weather.precip_chance_pct}% precip</>
+              )}
+            </div>
+          )}
+
+          {data.recommendations.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No nearby matches found. Try a different zip.</p>
+          ) : (
+            <div className="space-y-2">
+              {data.recommendations.map((rec, i) => (
+                <div key={i} className="rounded-xl border border-border bg-background/60 p-3" data-testid={`recommendation-${i}`}>
+                  <div className="flex items-baseline justify-between gap-2 mb-1">
+                    <span className="text-sm font-medium text-foreground">{rec.name}</span>
+                    <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                      {(rec.distance_m / 1000).toFixed(1)} km
+                    </span>
+                  </div>
+                  {rec.address && (
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-1.5">
+                      <MapPin className="w-3 h-3" /> {rec.address}
+                    </div>
+                  )}
+                  <p className="text-[12px] text-foreground/80 leading-snug italic">"{rec.reason}"</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 
 // Where Page - Main date type selection
 function Where() {
@@ -468,6 +860,8 @@ function WhereRestaurant() {
             <p className="text-muted-foreground text-sm">Choose your favorite food type</p>
           </div>
         </div>
+
+        <RecommendPanel dateType="restaurant" />
 
         <div className="grid grid-cols-2 gap-3 mb-6">
           {FOOD_TYPES.map((type) => {
@@ -703,6 +1097,8 @@ function WhereCinema() {
           </div>
         </div>
 
+        <RecommendPanel dateType="cinema" />
+
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => { setSelectedCategory("new"); setSelectedMovie(null); }}
@@ -886,6 +1282,8 @@ function WhereGeneric({ params: routeParams }: { params: { typeId: string } }) {
             <p className="text-muted-foreground text-sm">{data?.subtitle ?? ""}</p>
           </div>
         </div>
+
+        <RecommendPanel dateType={typeId} />
 
         {isLoading || !data ? (
           <div className="flex items-center justify-center py-12">
@@ -1306,6 +1704,7 @@ function App() {
           <Switch>
             <Route path="/" component={Landing} />
             <Route path="/when" component={When} />
+            <Route path="/availability" component={Availability} />
             <Route path="/where" component={Where} />
             <Route path="/where/restaurant" component={WhereRestaurant} />
             <Route path="/where/restaurant/business" component={WhereRestaurantBusiness} />
