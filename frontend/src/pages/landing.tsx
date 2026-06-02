@@ -4,19 +4,19 @@ import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function useEscapingButton() {
-  const [pos, setPos] = useState({ x: 50, y: 82 });
+  const [pos, setPos] = useState({ x: 72, y: 88 });
   const escape = useCallback(() => {
     setPos((prev) => {
       let nx: number, ny: number;
       let attempts = 0;
       do {
         nx = 10 + Math.random() * 68;
-        ny = 12 + Math.random() * 70;
+        ny = 75 + Math.random() * 18;
         attempts++;
       } while (
         attempts < 20 &&
         Math.abs(nx - prev.x) < 20 &&
-        Math.abs(ny - prev.y) < 20
+        Math.abs(ny - prev.y) < 8
       );
       return { x: nx, y: ny };
     });
@@ -55,9 +55,21 @@ export default function Landing() {
           <Heart className="w-5 h-5 fill-current" />
           Yes!
         </Button>
+
+        {/* Mobile: static button anchored safely below Yes, well clear of overlap */}
+        <button
+          className="sm:hidden mt-8 text-sm text-muted-foreground underline underline-offset-4"
+          onClick={escape}
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          No thanks
+        </button>
       </div>
 
+      {/* Desktop only: the fun dodging button */}
       <div
+        className="hidden sm:block"
         style={{
           position: "fixed",
           left: `${pos.x}%`,

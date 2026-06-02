@@ -9,6 +9,8 @@ import type { LucideIcon } from "lucide-react";
 import confetti from "canvas-confetti";
 
 const API_BASE = (import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || "") as string;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -174,60 +176,187 @@ const FOOD_TYPES = [
   { id: "steakhouse", label: "Steakhouse", Icon: ChefHat },
 ];
 
-// Fetch movies from backend
-async function fetchMovies() {
-  const response = await fetch(`${API_BASE}/api/movies`);
-  if (!response.ok) throw new Error('Failed to fetch movies');
-  return await response.json();
-}
-
-// Fetch restaurants from backend
-async function fetchRestaurants(cuisineType: string) {
-  const response = await fetch(
-    `${API_BASE}/api/restaurants?cuisine_type=${encodeURIComponent(cuisineType)}`,
+// Pokeball SVG icon matching the app's primary color theme
+function PokeballIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.75" fill="none" />
+      <path d="M2 12h20" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M2 12a10 10 0 0 1 20 0" fill="currentColor" fillOpacity="0.15" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.75" fill="none" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+    </svg>
   );
-  if (!response.ok) throw new Error('Failed to fetch restaurants');
-  return await response.json();
 }
 
-// New releases (updated weekly) and popular classics
-const getMovies = () => {
-  const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+// Fetch anime from Supabase — new releases rotate weekly, popular series shuffle each restart
+async function fetchAnime() {
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/anime?is_active=eq.true&select=*&order=created_at.asc`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+  );
+  if (!response.ok) throw new Error("Failed to fetch anime");
+  const data = await response.json();
+  const weekSlot = (Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % 4) + 1;
+  const prevSlot = weekSlot === 1 ? 4 : weekSlot - 1;
+  const newReleases = data.filter((a: any) => a.category === "new_release" && (a.week_number === weekSlot || a.week_number === prevSlot));
+  // Shuffle popular on every call (no staleTime on this query key) — fresh each app restart
+  const popular = data
+    .filter((a: any) => a.category === "popular")
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 10);
+  return { newReleases, popular };
+}
 
-  const newReleases = [
-    { title: "Venom: The Last Dance", year: "2024", genre: "Action" },
-    { title: "Gladiator II", year: "2024", genre: "Drama" },
-    { title: "Wicked", year: "2024", genre: "Musical" },
-    { title: "Moana 2", year: "2024", genre: "Animation" },
-    { title: "Red One", year: "2024", genre: "Action/Comedy" },
-    { title: "Here", year: "2024", genre: "Drama" },
-    { title: "A Real Pain", year: "2024", genre: "Comedy/Drama" },
-    { title: "Conclave", year: "2024", genre: "Thriller" },
-  ];
+// Fetch movies from Supabase — new releases rotate weekly, classics shuffle each session
+async function fetchMovies() {
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/movies?is_active=eq.true&select=*&order=created_at.asc`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+  );
+  if (!response.ok) throw new Error("Failed to fetch movies");
+  const data = await response.json();
+  // Show this week's 4 movies + last week's 4 = 8 new releases visible at a time
+  const weekSlot = (Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % 4) + 1;
+  const prevSlot = weekSlot === 1 ? 4 : weekSlot - 1;
+  const newReleases = data
+    .filter((m: any) => m.category === "new_release")
+    .filter((m: any) => m.week_number === weekSlot || m.week_number === prevSlot);
+  // Classics re-shuffle every session
+  const popularClassics = data
+    .filter((m: any) => m.category === "classic")
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 8);
+  return { newReleases, popularClassics, weekSlot };
+}
 
-  const popularClassics = [
-    { title: "The Shawshank Redemption", year: "1994", genre: "Drama" },
-    { title: "The Godfather", year: "1972", genre: "Crime" },
-    { title: "Pulp Fiction", year: "1994", genre: "Crime" },
-    { title: "Forrest Gump", year: "1994", genre: "Drama" },
-    { title: "The Matrix", year: "1999", genre: "Sci-Fi" },
-    { title: "Fight Club", year: "1999", genre: "Drama" },
-    { title: "Inception", year: "2010", genre: "Sci-Fi" },
-    { title: "The Dark Knight", year: "2008", genre: "Action" },
-    { title: "Titanic", year: "1997", genre: "Romance" },
-    { title: "Casablanca", year: "1942", genre: "Romance" },
-    { title: "Pretty Woman", year: "1990", genre: "Romance" },
-    { title: "When Harry Met Sally", year: "1989", genre: "Romance" },
-    { title: "The Notebook", year: "2004", genre: "Romance" },
-    { title: "La La Land", year: "2016", genre: "Musical" },
-    { title: "Eternal Sunshine", year: "2004", genre: "Romance/Sci-Fi" },
-  ];
-
-  // Shuffle popular classics on each restart
-  const shuffled = popularClassics.sort(() => Math.random() - 0.5).slice(0, 8);
-
-  return { newReleases, popularClassics: shuffled };
+// Cuisine tag mapping from FOOD_TYPES to OSM cuisine tags
+const CUISINE_OSM_TAGS: Record<string, string[]> = {
+  Italian: ["italian", "pizza", "pasta"],
+  Mexican: ["mexican", "tex-mex", "tacos"],
+  Asian: ["asian", "chinese", "japanese", "korean", "thai", "vietnamese", "sushi"],
+  American: ["american", "burger", "bbq", "diner", "fast_food"],
+  Seafood: ["seafood", "fish_and_chips", "sushi"],
+  Steakhouse: ["steak_house", "american", "grill"],
 };
+
+// Heuristics to classify a restaurant as budget or upscale based on OSM tags
+function classifyRestaurant(tags: Record<string, string>): "budget" | "upscale" {
+  const name = (tags.name || "").toLowerCase();
+  const cuisine = (tags.cuisine || "").toLowerCase();
+  const upscaleKeywords = ["fine dining", "steakhouse", "steak house", "bistro", "brasserie", "grill", "chophouse"];
+  const budgetKeywords = ["fast food", "diner", "burger", "pizza", "taco", "cafe", "deli", "sub", "wing", "chicken", "thai"];
+  if (upscaleKeywords.some(k => name.includes(k) || cuisine.includes(k))) return "upscale";
+  if (budgetKeywords.some(k => name.includes(k) || cuisine.includes(k))) return "budget";
+  // Default: names with common fast-food chains → budget, others → upscale
+  const budgetChains = ["mcdonald", "burger king", "wendy", "taco bell", "chipotle", "subway", "domino", "pizza hut", "kfc", "popeye", "five guys", "shake shack", "chick-fil", "panda"];
+  if (budgetChains.some(k => name.includes(k))) return "budget";
+  return "upscale";
+}
+
+// Fetch real nearby restaurants using browser geolocation + OpenStreetMap Overpass API
+async function fetchNearbyRestaurants(cuisineLabel: string, lat: number, lon: number): Promise<any[]> {
+  const tags = CUISINE_OSM_TAGS[cuisineLabel] || [cuisineLabel.toLowerCase()];
+  const cuisineFilter = tags.map(t => `["cuisine"~"${t}",i]`).join("");
+  const query = `[out:json][timeout:20];(node["amenity"="restaurant"]${cuisineFilter}(around:20000,${lat},${lon});way["amenity"="restaurant"]${cuisineFilter}(around:20000,${lat},${lon}););out center 30;`;
+
+  const res = await fetch("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": "DatePlanner/1.0",
+    },
+    body: `data=${encodeURIComponent(query)}`,
+  });
+  if (!res.ok) throw new Error("Overpass API error");
+  const json = await res.json();
+
+  const seen = new Set<string>();
+  return (json.elements || [])
+    .filter((el: any) => el.tags?.name)
+    .filter((el: any) => {
+      if (seen.has(el.tags.name)) return false;
+      seen.add(el.tags.name);
+      return true;
+    })
+    .map((el: any) => ({
+      id: el.id,
+      name: el.tags.name,
+      price_range: classifyRestaurant(el.tags),
+      cuisine_type: el.tags.cuisine || cuisineLabel,
+      location: [el.tags["addr:street"], el.tags["addr:city"]].filter(Boolean).join(", ") || null,
+    }));
+}
+
+// Location — uses IP geolocation (no permission needed) then silently upgrades
+// to browser GPS if available, caching the result for 30 min.
+function getCachedLocation(): { lat: number; lon: number } | null {
+  try {
+    const raw = sessionStorage.getItem("dp:location");
+    if (!raw) return null;
+    const { lat, lon, ts } = JSON.parse(raw);
+    if (Date.now() - ts > 30 * 60 * 1000) return null;
+    return { lat, lon };
+  } catch {
+    return null;
+  }
+}
+function setCachedLocation(lat: number, lon: number) {
+  sessionStorage.setItem("dp:location", JSON.stringify({ lat, lon, ts: Date.now() }));
+}
+
+async function getUserLocation(): Promise<{ lat: number; lon: number }> {
+  const cached = getCachedLocation();
+  if (cached) return cached;
+
+  // IP geolocation — automatic, no permission prompt
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    if (res.ok) {
+      const data = await res.json();
+      if (data.latitude && data.longitude) {
+        const loc = { lat: data.latitude, lon: data.longitude };
+        setCachedLocation(loc.lat, loc.lon);
+        // Silently upgrade to GPS in background for better accuracy
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => setCachedLocation(pos.coords.latitude, pos.coords.longitude),
+            () => {}, // ignore denial — IP coords are good enough
+            { timeout: 5000, maximumAge: 30 * 60 * 1000 }
+          );
+        }
+        return loc;
+      }
+    }
+  } catch {
+    // fall through to GPS attempt
+  }
+
+  // GPS fallback if IP geolocation failed
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) { reject(new Error("Location unavailable")); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        setCachedLocation(loc.lat, loc.lon);
+        resolve(loc);
+      },
+      () => reject(new Error("Location unavailable")),
+      { timeout: 8000 }
+    );
+  });
+}
+
+// Fetch restaurants from Supabase as fallback
+async function fetchRestaurantsFallback(cuisineLabel: string) {
+  const encoded = encodeURIComponent(`%${cuisineLabel}%`);
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/restaurants?cuisine_type=ilike.${encoded}&is_active=eq.true&select=*&order=name.asc`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+  );
+  if (!response.ok) throw new Error("Failed to fetch restaurants");
+  return await response.json() as any[];
+}
 
 // ─── User-local storage helpers ──────────────────────────────────────────
 function getUserId(): string {
@@ -239,12 +368,6 @@ function getUserId(): string {
   return uid;
 }
 
-function getZipCode(): string {
-  return localStorage.getItem("dp:zip-code") || "";
-}
-function setZipCode(z: string) {
-  localStorage.setItem("dp:zip-code", z);
-}
 
 type AvailabilityWindow = { date: string; start: string; end: string };
 
@@ -291,7 +414,7 @@ function isAvailable(date: string, time: string, windows: AvailabilityWindow[]):
 
 function Landing() {
   const [, navigate] = useLocation();
-  const [pos, setPos] = React.useState({ x: 50, y: 82 });
+  const [pos, setPos] = React.useState({ x: 72, y: 88 });
 
   const escape = React.useCallback(() => {
     setPos((prev) => {
@@ -299,12 +422,12 @@ function Landing() {
       let attempts = 0;
       do {
         nx = 10 + Math.random() * 68;
-        ny = 12 + Math.random() * 70;
+        ny = 75 + Math.random() * 18;
         attempts++;
       } while (
         attempts < 20 &&
         Math.abs(nx - prev.x) < 20 &&
-        Math.abs(ny - prev.y) < 20
+        Math.abs(ny - prev.y) < 8
       );
       return { x: nx, y: ny };
     });
@@ -334,9 +457,22 @@ function Landing() {
           <Heart className="w-5 h-5 fill-current" />
           Yes!
         </Button>
+
+        {/* Mobile: static link safely below Yes, no overlap possible */}
+        <button
+          className="sm:hidden mt-8 text-sm text-muted-foreground underline underline-offset-4"
+          onClick={escape}
+          aria-hidden="true"
+          tabIndex={-1}
+          data-testid="no-thanks-button"
+        >
+          No thanks
+        </button>
       </div>
 
+      {/* Desktop only: the fun dodging button */}
       <div
+        className="hidden sm:block"
         style={{
           position: "fixed",
           left: `${pos.x}%`,
@@ -604,155 +740,52 @@ function Availability() {
   );
 }
 
-// ─── AI Recommendation Panel ─────────────────────────────────────────────
-type Recommendation = {
-  name: string;
-  category: string;
-  address: string;
-  distance_m: number;
-  reason: string;
-};
-type RecommendResponse = {
-  location: { name: string; admin1: string; lat: number; lon: number };
-  weather: { summary: string; temp_max_f: number; temp_min_f: number; precip_chance_pct: number | null } | null;
-  places_total: number;
-  recommendations: Recommendation[];
+// ─── Recommendation Panel (Supabase) ─────────────────────────────────────
+
+const DATE_TYPE_TO_CATEGORY: Record<string, string> = {
+  restaurant: "indoor",
+  cinema: "indoor",
+  cooking: "indoor",
+  cocktails: "indoor",
+  museum: "indoor",
+  picnic: "outdoor",
+  hiking: "outdoor",
+  stargazing: "outdoor",
 };
 
-function RecommendPanel({ dateType, preferences }: { dateType: string; preferences?: string }) {
-  const search = useSearch();
-  const date = new URLSearchParams(search).get("date") || undefined;
-  const [zip, setZip] = React.useState<string>(getZipCode());
-  const [zipDraft, setZipDraft] = React.useState<string>("");
-  const [data, setData] = React.useState<RecommendResponse | null>(null);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [editing, setEditing] = React.useState(false);
+function RecommendPanel({ dateType }: { dateType: string }) {
+  const category = DATE_TYPE_TO_CATEGORY[dateType] || "indoor";
 
-  async function load(z: string) {
-    setLoading(true);
-    setError(null);
-    try {
-      const r = await fetch(`${API_BASE}/api/recommend`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date_type: dateType, zip_code: z, date, preferences }),
-      });
-      if (!r.ok) throw new Error(await r.text());
-      const d = (await r.json()) as RecommendResponse;
-      setData(d);
-    } catch (e: any) {
-      setError(e?.message?.slice(0, 120) || "Couldn't load nearby ideas.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { data, isLoading } = useQuery({
+    queryKey: ["activity-recommendations", category],
+    queryFn: async () => {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/activity_recommendations?category=eq.${category}&is_active=eq.true&select=name,description&limit=3`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      if (!res.ok) return [];
+      return res.json() as Promise<{ name: string; description: string }[]>;
+    },
+  });
 
-  React.useEffect(() => {
-    if (zip) load(zip);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zip, dateType, date, preferences]);
-
-  if (!zip || editing) {
-    return (
-      <div className="bg-card border border-primary/20 rounded-2xl p-4 mb-6" data-testid="recommend-zip-form">
-        <div className="flex items-center gap-2 mb-2 text-primary text-sm font-medium">
-          <Sparkles className="w-4 h-4" />
-          Get tailored ideas near you
-        </div>
-        <p className="text-xs text-muted-foreground mb-3">
-          Enter your zip code — we'll pull real nearby spots, check the weather, and pick the best matches.
-        </p>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={zipDraft}
-            onChange={(e) => setZipDraft(e.target.value.replace(/[^0-9]/g, "").slice(0, 5))}
-            placeholder="e.g. 10001"
-            inputMode="numeric"
-            maxLength={5}
-            className="flex-1 h-11 rounded-xl border border-border bg-background px-3 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-            data-testid="zip-input"
-          />
-          <Button
-            size="default"
-            className="h-11 rounded-xl px-4"
-            disabled={zipDraft.length < 5}
-            onClick={() => {
-              setZipCode(zipDraft);
-              setZip(zipDraft);
-              setEditing(false);
-            }}
-            data-testid="zip-save-button"
-          >
-            Use this
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading || !data || data.length === 0) return null;
 
   return (
-    <div className="bg-card border border-primary/20 rounded-2xl p-4 mb-6" data-testid="recommend-panel">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2 text-primary text-sm font-medium">
-          <Sparkles className="w-4 h-4" />
-          Recommended near {data?.location.name || zip}
-        </div>
-        <button
-          onClick={() => { setZipDraft(zip); setEditing(true); }}
-          className="text-[11px] text-muted-foreground hover:text-primary underline-offset-2 hover:underline"
-          data-testid="change-zip-button"
-        >
-          change
-        </button>
+    <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 mb-6" data-testid="recommend-panel">
+      <div className="flex items-center gap-2 text-primary text-sm font-medium mb-3">
+        <Sparkles className="w-4 h-4" />
+        Ideas for your date
       </div>
-
-      {loading && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-          <Loader2 className="w-4 h-4 animate-spin text-primary" /> Finding ideas based on weather & nearby spots...
-        </div>
-      )}
-      {error && !loading && (
-        <p className="text-xs text-muted-foreground">{error}</p>
-      )}
-
-      {!loading && data && (
-        <>
-          {data.weather && (
-            <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-3">
-              <Sun className="w-3.5 h-3.5 text-primary/70" />
-              {data.weather.summary}, {Math.round(data.weather.temp_min_f)}–{Math.round(data.weather.temp_max_f)}°F
-              {typeof data.weather.precip_chance_pct === "number" && (
-                <> · {data.weather.precip_chance_pct}% precip</>
-              )}
-            </div>
-          )}
-
-          {data.recommendations.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No nearby matches found. Try a different zip.</p>
-          ) : (
-            <div className="space-y-2">
-              {data.recommendations.map((rec, i) => (
-                <div key={i} className="rounded-xl border border-border bg-background/60 p-3" data-testid={`recommendation-${i}`}>
-                  <div className="flex items-baseline justify-between gap-2 mb-1">
-                    <span className="text-sm font-medium text-foreground">{rec.name}</span>
-                    <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                      {(rec.distance_m / 1000).toFixed(1)} km
-                    </span>
-                  </div>
-                  {rec.address && (
-                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-1.5">
-                      <MapPin className="w-3 h-3" /> {rec.address}
-                    </div>
-                  )}
-                  <p className="text-[12px] text-foreground/80 leading-snug italic">"{rec.reason}"</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
+      <div className="space-y-2">
+        {data.map((rec, i) => (
+          <div key={i} className="rounded-xl bg-background/70 border border-border/60 px-3 py-2.5" data-testid={`recommendation-${i}`}>
+            <p className="text-sm font-medium text-foreground">{rec.name}</p>
+            {rec.description && (
+              <p className="text-xs text-muted-foreground mt-0.5">{rec.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -763,7 +796,6 @@ function RecommendPanel({ dateType, preferences }: { dateType: string; preferenc
 function Where() {
   const [, navigate] = useLocation();
   const search = useSearch();
-  const [selected, setSelected] = React.useState<string | null>(null);
 
   const DATE_OPTIONS = [
     { id: "restaurant", label: "Restaurant", icon: Utensils, Illustration: DateIllustrations.restaurant },
@@ -810,8 +842,10 @@ function Where() {
                 onClick={() => handleSelect(option.id)}
                 className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-primary/5 p-6 transition-all duration-150"
               >
-                <option.Illustration />
-                <span className="text-sm font-medium text-foreground text-center">{option.label}</span>
+                <div className="pointer-events-none">
+                  <option.Illustration />
+                </div>
+                <span className="text-sm font-medium text-foreground text-center pointer-events-none">{option.label}</span>
               </button>
             );
           })}
@@ -910,26 +944,50 @@ function WhereRestaurantBusiness() {
   const params = new URLSearchParams(search);
   const foodTypeId = params.get("foodType") || "";
   const [selectedRestaurant, setSelectedRestaurant] = React.useState<string | null>(null);
+  const [locationError, setLocationError] = React.useState<string | null>(null);
+  const [usingFallback, setUsingFallback] = React.useState(false);
 
   const foodType = FOOD_TYPES.find(t => t.id === foodTypeId);
 
   const { data: restaurants = [], isLoading } = useQuery({
-    queryKey: ['restaurants', foodTypeId],
-    queryFn: () => fetchRestaurants(foodType?.label || ''),
+    queryKey: ['restaurants-nearby', foodTypeId],
+    queryFn: async () => {
+      // Always load Supabase data first — instant and reliable
+      const supabaseResults = await fetchRestaurantsFallback(foodType?.label || foodTypeId);
+
+      // Try to get real nearby restaurants; fall back to Supabase data if anything fails
+      try {
+        const loc = await getUserLocation();
+        const nearby = await fetchNearbyRestaurants(foodType?.label || foodTypeId, loc.lat, loc.lon);
+        if (nearby.length > 0) {
+          setUsingFallback(false);
+          return nearby;
+        }
+      } catch {
+        // Overpass or geolocation failed — use Supabase results
+      }
+
+      setUsingFallback(true);
+      return supabaseResults;
+    },
     enabled: !!foodType,
+    staleTime: 10 * 60 * 1000,
   });
 
   function handleContinue() {
     if (selectedRestaurant) {
-      const params = new URLSearchParams(search);
-      params.set("title", `${foodType?.label} at ${selectedRestaurant}`);
-      params.set("venueId", "restaurant");
-      params.set("location", selectedRestaurant);
-      params.set("foodType", foodTypeId || "");
-      params.set("restaurant", selectedRestaurant);
-      navigate(`/confirm?${params.toString()}`);
+      const p = new URLSearchParams(search);
+      p.set("title", `${foodType?.label} at ${selectedRestaurant}`);
+      p.set("venueId", "restaurant");
+      p.set("location", selectedRestaurant);
+      p.set("foodType", foodTypeId || "");
+      p.set("restaurant", selectedRestaurant);
+      navigate(`/confirm?${p.toString()}`);
     }
   }
+
+  const budgetList = restaurants.filter((r: any) => r.price_range === 'budget');
+  const upscaleList = restaurants.filter((r: any) => r.price_range === 'upscale');
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-5 py-12">
@@ -943,7 +1001,7 @@ function WhereRestaurantBusiness() {
           ← Back
         </Button>
 
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-2">
           {foodType && (
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
               <foodType.Icon className="w-7 h-7 text-primary" strokeWidth={1.75} />
@@ -953,88 +1011,111 @@ function WhereRestaurantBusiness() {
             <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-foreground leading-tight">
               {foodType?.label} Restaurants
             </h1>
-            <p className="text-muted-foreground text-sm">Budget-friendly and upscale options</p>
+            <p className="text-muted-foreground text-sm">
+              {usingFallback ? "Popular options" : "Near you"}
+            </p>
           </div>
         </div>
 
-        <RecommendPanel dateType="restaurant" preferences={foodType?.label || ""} />
+        {locationError === "denied" && (
+          <div className="mb-4 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5 text-xs text-amber-700">
+            Location access was denied — showing popular options instead.
+          </div>
+        )}
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Finding restaurants near you…</p>
           </div>
         ) : (
-          <>
-            <div className="mb-4">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500" />
-                Budget-Friendly
-              </h3>
-              <div className="space-y-2">
-                {restaurants.filter((r: any) => r.price_range === 'budget').map((restaurant: any) => {
-                  const isSelected = selectedRestaurant === restaurant.name;
-                  return (
-                    <button
-                      key={restaurant.id}
-                      onClick={() => setSelectedRestaurant(restaurant.name)}
-                      className={`w-full flex items-center justify-between rounded-2xl border-2 p-4 transition-all duration-150 ${
-                        isSelected
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-card hover:border-primary/30"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Utensils className={`w-5 h-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
-                        <span className={`font-medium ${isSelected ? "text-primary" : "text-foreground"}`}>
-                          {restaurant.name}
-                        </span>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                        isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
-                      }`}>
-                        {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
-                      </div>
-                    </button>
-                  );
-                })}
+          <div className="mt-4 max-h-[60vh] overflow-y-auto pr-0.5">
+            {budgetList.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-2 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500" />
+                  Budget-Friendly
+                </h3>
+                <div className="space-y-2">
+                  {budgetList.slice(0, 8).map((restaurant: any) => {
+                    const isSelected = selectedRestaurant === restaurant.name;
+                    return (
+                      <button
+                        key={restaurant.id}
+                        onClick={() => setSelectedRestaurant(restaurant.name)}
+                        className={`w-full flex items-center justify-between rounded-2xl border-2 p-4 text-left transition-all duration-150 ${
+                          isSelected ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/30"
+                        }`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3">
+                            <Utensils className={`w-4 h-4 flex-shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className={`font-medium text-sm truncate ${isSelected ? "text-primary" : "text-foreground"}`}>
+                              {restaurant.name}
+                            </span>
+                          </div>
+                          {restaurant.location && (
+                            <p className="text-xs text-muted-foreground mt-0.5 ml-7 truncate">{restaurant.location}</p>
+                          )}
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ml-2 transition-all ${
+                          isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
+                        }`}>
+                          {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="mb-6">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary" />
-                Upscale Dining
-              </h3>
-              <div className="space-y-2">
-                {restaurants.filter((r: any) => r.price_range === 'upscale').map((restaurant: any) => {
-                  const isSelected = selectedRestaurant === restaurant.name;
-                  return (
-                    <button
-                      key={restaurant.id}
-                      onClick={() => setSelectedRestaurant(restaurant.name)}
-                      className={`w-full flex items-center justify-between rounded-2xl border-2 p-4 transition-all duration-150 ${
-                        isSelected
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-card hover:border-primary/30"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Utensils className={`w-5 h-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
-                        <span className={`font-medium ${isSelected ? "text-primary" : "text-foreground"}`}>
-                          {restaurant.name}
-                        </span>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                        isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
-                      }`}>
-                        {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
-                      </div>
-                    </button>
-                  );
-                })}
+            {upscaleList.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-2 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  Upscale Dining
+                </h3>
+                <div className="space-y-2">
+                  {upscaleList.slice(0, 8).map((restaurant: any) => {
+                    const isSelected = selectedRestaurant === restaurant.name;
+                    return (
+                      <button
+                        key={restaurant.id}
+                        onClick={() => setSelectedRestaurant(restaurant.name)}
+                        className={`w-full flex items-center justify-between rounded-2xl border-2 p-4 text-left transition-all duration-150 ${
+                          isSelected ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/30"
+                        }`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3">
+                            <Utensils className={`w-4 h-4 flex-shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className={`font-medium text-sm truncate ${isSelected ? "text-primary" : "text-foreground"}`}>
+                              {restaurant.name}
+                            </span>
+                          </div>
+                          {restaurant.location && (
+                            <p className="text-xs text-muted-foreground mt-0.5 ml-7 truncate">{restaurant.location}</p>
+                          )}
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ml-2 transition-all ${
+                          isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
+                        }`}>
+                          {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </>
+            )}
+
+            {budgetList.length === 0 && upscaleList.length === 0 && (
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                No {foodType?.label} restaurants found nearby. Try a different cuisine.
+              </p>
+            )}
+          </div>
         )}
 
         <Button
@@ -1050,17 +1131,6 @@ function WhereRestaurantBusiness() {
   );
 }
 
-// Pokeball icon — themed inline SVG matching app's stroke style
-const Pokeball = ({ className = "" }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M3 12h6" />
-    <path d="M15 12h6" />
-    <circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none" />
-    <circle cx="12" cy="12" r="1.1" fill="hsl(var(--card))" stroke="none" />
-  </svg>
-);
-
 // Cinema Sub-Page
 function WhereCinema() {
   const [, navigate] = useLocation();
@@ -1068,25 +1138,41 @@ function WhereCinema() {
   const [selectedMovie, setSelectedMovie] = React.useState<{ title: string; year: string; genre: string } | null>(null);
   const [selectedCategory, setSelectedCategory] = React.useState<"new" | "classics" | "anime">("new");
 
-  const { data: movies, isLoading } = useQuery({
-    queryKey: ['movies'],
+  // weekSlot in the query key ensures React Query refetches when the week changes
+  const weekSlot = (Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % 4) + 1;
+  const { data: movies, isLoading: moviesLoading } = useQuery({
+    queryKey: ['movies', weekSlot],
     queryFn: fetchMovies,
+    staleTime: 7 * 24 * 60 * 60 * 1000,
+  });
+  // Session seed changes on every page load — forces a fresh shuffle of popular series each restart
+  const sessionSeed = React.useRef(Math.random()).current;
+  const { data: animeData, isLoading: animeLoading } = useQuery({
+    queryKey: ['anime', weekSlot, sessionSeed],
+    queryFn: fetchAnime,
+    staleTime: Infinity,
   });
 
-  const currentMovies =
-    selectedCategory === "new" ? (movies?.newReleases || []) :
-    selectedCategory === "classics" ? (movies?.popularClassics || []) :
-    (movies?.animeSeries || []);
+  const isLoading = moviesLoading || (selectedCategory === "anime" && animeLoading);
 
-  const continueLabel =
-    selectedCategory === "anime" ? "Anime" : "Movie";
+  const currentMovies = selectedCategory === "new"
+    ? (movies?.newReleases || [])
+    : selectedCategory === "classics"
+    ? (movies?.popularClassics || [])
+    : selectedCategory === "anime" && animeData
+    ? (animeData.newReleases.length > 0 ? animeData.newReleases : animeData.popular)
+    : [];
+
+  // For anime tab, show new releases section + popular section separately
+  const animeNewReleases = animeData?.newReleases || [];
+  const animePopular = animeData?.popular || [];
 
   function handleContinue() {
     if (selectedMovie) {
       const params = new URLSearchParams(search);
-      params.set("title", `${continueLabel}: ${selectedMovie.title} (${selectedMovie.year})`);
+      params.set("title", `Movie: ${selectedMovie.title} (${selectedMovie.year})`);
       params.set("venueId", "cinema");
-      params.set("location", selectedCategory === "anime" ? "Movie Night (Anime)" : "Cinema");
+      params.set("location", "Cinema");
       params.set("movie", selectedMovie.title);
       params.set("year", selectedMovie.year);
       params.set("genre", selectedMovie.genre);
@@ -1121,7 +1207,6 @@ function WhereCinema() {
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => { setSelectedCategory("new"); setSelectedMovie(null); }}
-            data-testid="tab-new"
             className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
               selectedCategory === "new"
                 ? "bg-primary text-primary-foreground"
@@ -1129,11 +1214,10 @@ function WhereCinema() {
             }`}
           >
             <Sparkles className="w-4 h-4 inline mr-1.5" />
-            New
+            2026
           </button>
           <button
             onClick={() => { setSelectedCategory("classics"); setSelectedMovie(null); }}
-            data-testid="tab-classics"
             className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
               selectedCategory === "classics"
                 ? "bg-primary text-primary-foreground"
@@ -1145,14 +1229,13 @@ function WhereCinema() {
           </button>
           <button
             onClick={() => { setSelectedCategory("anime"); setSelectedMovie(null); }}
-            data-testid="tab-anime"
             className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
               selectedCategory === "anime"
                 ? "bg-primary text-primary-foreground"
                 : "bg-card border border-border text-muted-foreground hover:border-primary/30"
             }`}
           >
-            <Pokeball className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+            <PokeballIcon className="w-4 h-4 inline mr-1.5" />
             Anime
           </button>
         </div>
@@ -1160,6 +1243,85 @@ function WhereCinema() {
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : selectedCategory === "anime" ? (
+          <div className="space-y-4 mb-6 max-h-[26rem] overflow-y-auto">
+            {animeNewReleases.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-2 flex items-center gap-2">
+                  <Sparkles className="w-3 h-3" /> New Series
+                </p>
+                <div className="space-y-2">
+                  {animeNewReleases.map((anime: any) => {
+                    const isSelected = selectedMovie?.title === anime.title;
+                    return (
+                      <button
+                        key={anime.title}
+                        onClick={() => setSelectedMovie({ title: anime.title, year: anime.year, genre: anime.genre })}
+                        className={`w-full flex items-start justify-between rounded-2xl border-2 p-4 text-left transition-all duration-150 ${
+                          isSelected ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/30"
+                        }`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <PokeballIcon className={`w-4 h-4 flex-shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className={`font-medium text-sm ${isSelected ? "text-primary" : "text-foreground"}`}>{anime.title}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground ml-6">
+                            <span>{anime.year}</span>
+                            <span className="text-border">•</span>
+                            <span>{anime.genre}</span>
+                          </div>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all ${
+                          isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
+                        }`}>
+                          {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {animePopular.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-2 flex items-center gap-2">
+                  <Star className="w-3 h-3" /> Popular Series
+                </p>
+                <div className="space-y-2">
+                  {animePopular.map((anime: any) => {
+                    const isSelected = selectedMovie?.title === anime.title;
+                    return (
+                      <button
+                        key={anime.title}
+                        onClick={() => setSelectedMovie({ title: anime.title, year: anime.year, genre: anime.genre })}
+                        className={`w-full flex items-start justify-between rounded-2xl border-2 p-4 text-left transition-all duration-150 ${
+                          isSelected ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/30"
+                        }`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <PokeballIcon className={`w-4 h-4 flex-shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className={`font-medium text-sm ${isSelected ? "text-primary" : "text-foreground"}`}>{anime.title}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground ml-6">
+                            <span>{anime.year}</span>
+                            <span className="text-border">•</span>
+                            <span>{anime.genre}</span>
+                          </div>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all ${
+                          isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
+                        }`}>
+                          {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-2 mb-6 max-h-80 overflow-y-auto">
@@ -1220,10 +1382,179 @@ type DateGroup = {
 };
 type DateOptions = { title: string; subtitle: string; groups: DateGroup[] };
 
-async function fetchDateOptions(typeId: string): Promise<DateOptions> {
-  const response = await fetch(`${API_BASE}/api/date-options/${typeId}`);
-  if (!response.ok) throw new Error('Failed to fetch options');
-  return await response.json();
+const DATE_TYPE_OPTIONS: Record<string, DateOptions> = {
+  picnic: {
+    title: "Picnic in the Park",
+    subtitle: "Let's set the scene",
+    groups: [
+      {
+        label: "Setting",
+        key: "setting",
+        items: [
+          { id: "rose-garden", label: "Rose Garden", icon: "Flower", desc: "Fragrant & romantic" },
+          { id: "lakeside", label: "Lakeside Lawn", icon: "Waves", desc: "Ducks & reflections" },
+          { id: "hilltop", label: "Hilltop View", icon: "Mountain", desc: "See the whole city" },
+          { id: "wildflower", label: "Wildflower Meadow", icon: "Flower2", desc: "Golden & open" },
+          { id: "secret-grove", label: "Secret Grove", icon: "Trees", desc: "Shaded & private" },
+          { id: "sunset-point", label: "Sunset Point", icon: "Sunset", desc: "Golden hour magic" },
+        ],
+      },
+      {
+        label: "Spread",
+        key: "spread",
+        items: [
+          { id: "cheese-board", label: "Cheese & Charcuterie", icon: "Wheat", desc: "Brie, grapes, salami" },
+          { id: "sandwiches", label: "Gourmet Sandwiches", icon: "Sandwich", desc: "Crusty bread, pesto" },
+          { id: "sweet-treats", label: "Sweet Treats", icon: "Cake", desc: "Berries & chocolate" },
+          { id: "wine-pairings", label: "Wine & Bites", icon: "Wine", desc: "Rosé and snacks" },
+        ],
+      },
+    ],
+  },
+  hiking: {
+    title: "Nature Hike",
+    subtitle: "Pick your trail and pace",
+    groups: [
+      {
+        label: "Trail",
+        key: "trail",
+        items: [
+          { id: "forest-loop", label: "Forest Loop", icon: "Trees", desc: "Easy · 2 mi · pine scent" },
+          { id: "river-walk", label: "River Walk", icon: "Droplets", desc: "Easy · 3 mi · flat path" },
+          { id: "waterfall-trail", label: "Waterfall Trail", icon: "Waves", desc: "Moderate · 4 mi" },
+          { id: "ridge-climb", label: "Ridge Climb", icon: "Mountain", desc: "Hard · 6 mi · views" },
+          { id: "sunset-summit", label: "Sunset Summit", icon: "Sunset", desc: "Hard · 5 mi · golden hour" },
+          { id: "cave-route", label: "Cave Route", icon: "Flame", desc: "Moderate · 3 mi · cool & dim" },
+        ],
+      },
+      {
+        label: "Pace",
+        key: "pace",
+        items: [
+          { id: "slow-stroll", label: "Slow Stroll", icon: "Snail", desc: "Talk, breathe, linger" },
+          { id: "steady", label: "Steady", icon: "Footprints", desc: "Comfortable pace" },
+          { id: "challenge", label: "Challenge Mode", icon: "Zap", desc: "Push yourselves" },
+        ],
+      },
+    ],
+  },
+  cooking: {
+    title: "Cook Together",
+    subtitle: "What are we making tonight?",
+    groups: [
+      {
+        label: "Dish",
+        key: "dish",
+        items: [
+          { id: "fresh-pasta", label: "Fresh Pasta", icon: "Utensils", desc: "Hand-rolled tagliatelle" },
+          { id: "homemade-pizza", label: "Homemade Pizza", icon: "Pizza", desc: "Toss the dough" },
+          { id: "sushi-night", label: "Sushi Night", icon: "Fish", desc: "Roll your own" },
+          { id: "taco-bar", label: "Taco Bar", icon: "Wheat", desc: "All the toppings" },
+          { id: "ramen", label: "Ramen", icon: "Soup", desc: "Slow broth, soft eggs" },
+          { id: "dessert-bake", label: "Dessert Bake", icon: "Cake", desc: "Tiramisu / soufflé" },
+        ],
+      },
+      {
+        label: "Mood",
+        key: "mood",
+        items: [
+          { id: "candlelit", label: "Candlelit", icon: "Flame", desc: "Low light, slow music" },
+          { id: "fun-chaotic", label: "Fun & Chaotic", icon: "PartyPopper", desc: "Aprons, flour fight" },
+          { id: "wine-and-jazz", label: "Wine & Jazz", icon: "Music", desc: "Sip and stir" },
+        ],
+      },
+    ],
+  },
+  museum: {
+    title: "Museum or Gallery",
+    subtitle: "Choose your exhibition",
+    groups: [
+      {
+        label: "Exhibition",
+        key: "exhibition",
+        items: [
+          { id: "impressionist", label: "Impressionists", icon: "Palette", desc: "Monet, Renoir, Degas" },
+          { id: "modern-art", label: "Modern Art", icon: "Frame", desc: "Abstract, bold, weird" },
+          { id: "photography", label: "Photography", icon: "Camera", desc: "Black & white silence" },
+          { id: "ancient-civ", label: "Ancient Civilizations", icon: "Landmark", desc: "Egypt, Rome, Greece" },
+          { id: "science-nature", label: "Science & Nature", icon: "Telescope", desc: "Dinosaurs & cosmos" },
+          { id: "sculpture-garden", label: "Sculpture Garden", icon: "Brush", desc: "Outdoor, contemplative" },
+        ],
+      },
+      {
+        label: "After",
+        key: "after",
+        items: [
+          { id: "cafe-debrief", label: "Café Debrief", icon: "Coffee", desc: "Discuss what we saw" },
+          { id: "bookstore", label: "Bookstore Browse", icon: "BookOpen", desc: "Pick a book for each other" },
+          { id: "park-walk", label: "Park Walk", icon: "TreePine", desc: "Let it sink in" },
+        ],
+      },
+    ],
+  },
+  cocktails: {
+    title: "Cocktails & Drinks",
+    subtitle: "Set the scene",
+    groups: [
+      {
+        label: "Spot",
+        key: "spot",
+        items: [
+          { id: "speakeasy", label: "Hidden Speakeasy", icon: "Lock", desc: "Press the bookcase" },
+          { id: "rooftop", label: "Rooftop Bar", icon: "Building2", desc: "City lights below" },
+          { id: "tiki-bar", label: "Tiki Bar", icon: "Palmtree", desc: "Tropical & playful" },
+          { id: "wine-bar", label: "Cozy Wine Bar", icon: "Wine", desc: "Candles & small plates" },
+          { id: "jazz-lounge", label: "Jazz Lounge", icon: "Music", desc: "Live music, low light" },
+          { id: "natural-wine", label: "Natural Wine Spot", icon: "Grape", desc: "Funky pours & pét-nat" },
+        ],
+      },
+      {
+        label: "Signature",
+        key: "signature",
+        items: [
+          { id: "negroni", label: "Negroni", icon: "Martini", desc: "Bitter, classic" },
+          { id: "espresso-martini", label: "Espresso Martini", icon: "Coffee", desc: "Buzz & boldness" },
+          { id: "old-fashioned", label: "Old Fashioned", icon: "GlassWater", desc: "Bourbon, bitters, orange" },
+          { id: "spritz", label: "Spritz", icon: "Citrus", desc: "Bubbly & light" },
+        ],
+      },
+    ],
+  },
+  stargazing: {
+    title: "Stargazing",
+    subtitle: "Find the perfect dark sky",
+    groups: [
+      {
+        label: "Where",
+        key: "where",
+        items: [
+          { id: "rooftop", label: "Rooftop Blanket", icon: "Building2", desc: "City sky, our own quiet" },
+          { id: "lake-shore", label: "Lake Shore", icon: "Waves", desc: "Reflections on water" },
+          { id: "hilltop", label: "Hilltop", icon: "Mountain", desc: "Above the light pollution" },
+          { id: "observatory", label: "Local Observatory", icon: "Telescope", desc: "Real telescopes" },
+          { id: "desert", label: "Desert Sky", icon: "Tent", desc: "Brightest stars you'll see" },
+          { id: "field", label: "Open Field", icon: "Wheat", desc: "Lie down, look up" },
+        ],
+      },
+      {
+        label: "To Spot",
+        key: "spot",
+        items: [
+          { id: "milky-way", label: "The Milky Way", icon: "Sparkles", desc: "Best after midnight" },
+          { id: "meteor-shower", label: "Meteor Shower", icon: "Zap", desc: "Wishes incoming" },
+          { id: "moon-craters", label: "Moon Craters", icon: "Moon", desc: "Bring binoculars" },
+          { id: "constellations", label: "Constellations", icon: "Star", desc: "Orion, Cassiopeia, Lyra" },
+          { id: "planets", label: "Planets", icon: "Globe", desc: "Saturn's rings, maybe" },
+        ],
+      },
+    ],
+  },
+};
+
+function fetchDateOptions(typeId: string): DateOptions {
+  const options = DATE_TYPE_OPTIONS[typeId];
+  if (!options) throw new Error("Unknown date type");
+  return options;
 }
 
 const ILLUSTRATION_MAP: Record<string, () => JSX.Element> = {
@@ -1566,9 +1897,9 @@ function Confirm() {
     async function send() {
       setEmailStatus("sending");
       try {
-        const response = await fetch(`${API_BASE}/api/send-date-email`, {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/send-date-email`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_KEY}` },
           body: JSON.stringify({
             email: RECIPIENT_EMAIL,
             date: formattedDate,
@@ -1597,9 +1928,9 @@ function Confirm() {
   async function handleSendEmail() {
     setEmailStatus("sending");
     try {
-      const response = await fetch(`${API_BASE}/api/send-date-email`, {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/send-date-email`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
         body: JSON.stringify({
           email: RECIPIENT_EMAIL,
           date: formattedDate,
