@@ -1,32 +1,30 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-function useEscapingButton() {
-  const [pos, setPos] = useState({ x: 72, y: 88 });
+export default function Landing() {
+  const [, navigate] = useLocation();
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
   const escape = useCallback(() => {
     setPos((prev) => {
       let nx: number, ny: number;
       let attempts = 0;
       do {
-        nx = 10 + Math.random() * 68;
-        ny = 75 + Math.random() * 18;
+        nx = 8 + Math.random() * 72;
+        ny = 8 + Math.random() * 72;
         attempts++;
       } while (
         attempts < 20 &&
+        prev !== null &&
         Math.abs(nx - prev.x) < 20 &&
-        Math.abs(ny - prev.y) < 8
+        Math.abs(ny - prev.y) < 20
       );
       return { x: nx, y: ny };
     });
   }, []);
-  return { pos, escape };
-}
-
-export default function Landing() {
-  const [, navigate] = useLocation();
-  const { pos, escape } = useEscapingButton();
 
   return (
     <div className="min-h-screen bg-background overflow-hidden relative select-none">
@@ -47,50 +45,59 @@ export default function Landing() {
           Will you go on a date with me?
         </h1>
 
-        <Button
-          size="lg"
-          className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 shadow-lg"
-          onClick={() => navigate("/when")}
-        >
-          <Heart className="w-5 h-5 fill-current" />
-          Yes!
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button
+            size="lg"
+            className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 shadow-lg"
+            onClick={() => navigate("/when")}
+          >
+            <Heart className="w-5 h-5 fill-current" />
+            Yes!
+          </Button>
 
-        {/* Mobile: static button anchored safely below Yes, well clear of overlap */}
-        <button
-          className="sm:hidden mt-8 text-sm text-muted-foreground underline underline-offset-4"
+          {/* Inline "No thanks" — hidden once it has escaped to a floating position */}
+          {pos === null && (
+            <Button
+              ref={btnRef}
+              size="lg"
+              variant="outline"
+              className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 border-2"
+              onMouseEnter={escape}
+              onTouchStart={escape}
+              onClick={escape}
+            >
+              No thanks
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Floating escaped button */}
+      {pos !== null && (
+        <div
+          style={{
+            position: "fixed",
+            left: `${pos.x}%`,
+            top: `${pos.y}%`,
+            transform: "translate(-50%, -50%)",
+            transition: "left 0.18s cubic-bezier(.22,1,.36,1), top 0.18s cubic-bezier(.22,1,.36,1)",
+            zIndex: 50,
+          }}
+          onMouseEnter={escape}
+          onTouchStart={escape}
           onClick={escape}
           aria-hidden="true"
-          tabIndex={-1}
         >
-          No thanks
-        </button>
-      </div>
-
-      {/* Desktop only: the fun dodging button */}
-      <div
-        className="hidden sm:block"
-        style={{
-          position: "fixed",
-          left: `${pos.x}%`,
-          top: `${pos.y}%`,
-          transform: "translate(-50%, -50%)",
-          transition: "left 0.18s cubic-bezier(.22,1,.36,1), top 0.18s cubic-bezier(.22,1,.36,1)",
-          zIndex: 50,
-        }}
-        onMouseEnter={escape}
-        onClick={escape}
-        aria-hidden="true"
-      >
-        <Button
-          size="lg"
-          variant="outline"
-          className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 border-2 pointer-events-none"
-          tabIndex={-1}
-        >
-          No thanks
-        </Button>
-      </div>
+          <Button
+            size="lg"
+            variant="outline"
+            className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 border-2 pointer-events-none"
+            tabIndex={-1}
+          >
+            No thanks
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

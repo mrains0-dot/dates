@@ -414,20 +414,21 @@ function isAvailable(date: string, time: string, windows: AvailabilityWindow[]):
 
 function Landing() {
   const [, navigate] = useLocation();
-  const [pos, setPos] = React.useState({ x: 72, y: 88 });
+  const [pos, setPos] = React.useState<{ x: number; y: number } | null>(null);
 
   const escape = React.useCallback(() => {
     setPos((prev) => {
       let nx: number, ny: number;
       let attempts = 0;
       do {
-        nx = 10 + Math.random() * 68;
-        ny = 75 + Math.random() * 18;
+        nx = 8 + Math.random() * 72;
+        ny = 8 + Math.random() * 72;
         attempts++;
       } while (
         attempts < 20 &&
+        prev !== null &&
         Math.abs(nx - prev.x) < 20 &&
-        Math.abs(ny - prev.y) < 8
+        Math.abs(ny - prev.y) < 20
       );
       return { x: nx, y: ny };
     });
@@ -448,53 +449,59 @@ function Landing() {
           Will you go on a date with me?
         </h1>
 
-        <Button
-          size="lg"
-          className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 shadow-lg"
-          onClick={() => navigate("/when")}
-          data-testid="yes-button"
-        >
-          <Heart className="w-5 h-5 fill-current" />
-          Yes!
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button
+            size="lg"
+            className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 shadow-lg"
+            onClick={() => navigate("/when")}
+            data-testid="yes-button"
+          >
+            <Heart className="w-5 h-5 fill-current" />
+            Yes!
+          </Button>
 
-        {/* Mobile: static link safely below Yes, no overlap possible */}
-        <button
-          className="sm:hidden mt-8 text-sm text-muted-foreground underline underline-offset-4"
+          {pos === null && (
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 border-2"
+              onMouseEnter={escape}
+              onTouchStart={escape}
+              onClick={escape}
+              data-testid="no-thanks-button"
+            >
+              No thanks
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {pos !== null && (
+        <div
+          style={{
+            position: "fixed",
+            left: `${pos.x}%`,
+            top: `${pos.y}%`,
+            transform: "translate(-50%, -50%)",
+            transition: "left 0.18s cubic-bezier(.22,1,.36,1), top 0.18s cubic-bezier(.22,1,.36,1)",
+            zIndex: 50,
+          }}
+          onMouseEnter={escape}
+          onTouchStart={escape}
           onClick={escape}
           aria-hidden="true"
-          tabIndex={-1}
-          data-testid="no-thanks-button"
         >
-          No thanks
-        </button>
-      </div>
-
-      {/* Desktop only: the fun dodging button */}
-      <div
-        className="hidden sm:block"
-        style={{
-          position: "fixed",
-          left: `${pos.x}%`,
-          top: `${pos.y}%`,
-          transform: "translate(-50%, -50%)",
-          transition: "left 0.18s cubic-bezier(.22,1,.36,1), top 0.18s cubic-bezier(.22,1,.36,1)",
-          zIndex: 50,
-        }}
-        onMouseEnter={escape}
-        onClick={escape}
-        aria-hidden="true"
-      >
-        <Button
-          size="lg"
-          variant="outline"
-          className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 border-2 pointer-events-none"
-          tabIndex={-1}
-          data-testid="no-thanks-button"
-        >
-          No thanks
-        </Button>
-      </div>
+          <Button
+            size="lg"
+            variant="outline"
+            className="h-16 px-14 text-xl font-semibold rounded-2xl gap-3 border-2 pointer-events-none"
+            tabIndex={-1}
+            data-testid="no-thanks-button"
+          >
+            No thanks
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
