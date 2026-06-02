@@ -115,6 +115,40 @@ UPSCALE_RESTAURANTS = [
     ("Eddie Vs Prime Seafood", "Seafood/Steakhouse"), ("Royals Chop House", "American/Steakhouse"),
 ]
 
+# Anime series (popular + new). Order is reshuffled on each backend startup.
+ANIME_SERIES = [
+    ("Frieren: Beyond Journey's End", "2024", "Fantasy/Drama", "new"),
+    ("Solo Leveling", "2024", "Action/Fantasy", "new"),
+    ("Dandadan", "2024", "Supernatural/Comedy", "new"),
+    ("The Apothecary Diaries", "2024", "Mystery/Historical", "new"),
+    ("Wind Breaker", "2024", "Action/School", "new"),
+    ("Kaiju No. 8", "2024", "Action/Sci-Fi", "new"),
+    ("Delicious in Dungeon", "2024", "Fantasy/Adventure", "new"),
+    ("Oshi no Ko", "2023", "Drama/Mystery", "new"),
+    ("Sakamoto Days", "2025", "Action/Comedy", "new"),
+    ("Mashle: Magic and Muscles", "2024", "Action/Comedy", "new"),
+    ("Demon Slayer", "2019", "Action/Supernatural", "popular"),
+    ("Jujutsu Kaisen", "2020", "Action/Supernatural", "popular"),
+    ("Attack on Titan", "2013", "Action/Drama", "popular"),
+    ("One Piece", "1999", "Adventure/Fantasy", "popular"),
+    ("My Hero Academia", "2016", "Action/Superhero", "popular"),
+    ("Chainsaw Man", "2022", "Action/Horror", "popular"),
+    ("Spy x Family", "2022", "Action/Comedy", "popular"),
+    ("Bleach: Thousand-Year Blood War", "2022", "Action/Supernatural", "popular"),
+    ("Vinland Saga", "2019", "Historical/Action", "popular"),
+    ("Hunter x Hunter", "2011", "Adventure/Action", "popular"),
+    ("Cowboy Bebop", "1998", "Sci-Fi/Action", "popular"),
+    ("Mob Psycho 100", "2016", "Action/Comedy", "popular"),
+    ("Steins;Gate", "2011", "Sci-Fi/Thriller", "popular"),
+    ("Death Note", "2006", "Thriller/Psychological", "popular"),
+    ("Fullmetal Alchemist: Brotherhood", "2009", "Action/Fantasy", "popular"),
+    ("Made in Abyss", "2017", "Fantasy/Adventure", "popular"),
+    ("Re:Zero - Starting Life in Another World", "2016", "Fantasy/Drama", "popular"),
+    ("86 Eighty-Six", "2021", "Sci-Fi/Drama", "popular"),
+    ("Mushoku Tensei: Jobless Reincarnation", "2021", "Fantasy/Adventure", "popular"),
+    ("Tokyo Revengers", "2021", "Action/Drama", "popular"),
+]
+
 # Rich sub-page options for the 6 non-restaurant/non-cinema date types
 DATE_TYPE_OPTIONS = {
     "picnic": {
@@ -311,10 +345,34 @@ async def seed_database():
                          "created_at": datetime.now(timezone.utc).isoformat()})
         await db.restaurants.insert_many(docs)
 
+    if await db.anime.count_documents({}) == 0:
+        docs = []
+        for title, year, genre, category in ANIME_SERIES:
+            docs.append({"id": str(uuid.uuid4()), "title": title, "year": year,
+                         "genre": genre, "category": category, "is_active": True,
+                         "created_at": datetime.now(timezone.utc).isoformat()})
+        await db.anime.insert_many(docs)
+
+
+# Module-level: shuffle order is regenerated each backend restart
+import random as _random
+_anime_session_ids: list = []
+
+
+async def _refresh_anime_session_order():
+    cursor = db.anime.find({"is_active": True}, {"id": 1, "_id": 0})
+    docs = await cursor.to_list(length=1000)
+    ids = [d["id"] for d in docs]
+    _random.shuffle(ids)
+    return ids[:16]
+
 
 @app.on_event("startup")
 async def on_startup():
     await seed_database()
+    global _anime_session_ids
+    _anime_session_ids = await _refresh_anime_session_order()
+    logger.info(f"Anime session order refreshed: {len(_anime_session_ids)} titles")
 
 
 # ---------- Routes ----------
@@ -335,7 +393,17 @@ async def get_movies():
                     and (not m.get("week_number") or m["week_number"] in (w_a, w_b))][:8]
     classics = [m for m in movies if m["category"] == "classic"]
     random.shuffle(classics)
-    return {"newReleases": new_releases, "popularClassics": classics[:8]}
+
+    # Anime — use the per-startup shuffle order so it's stable for a session
+    anime_cursor = db.anime.find({"id": {"$in": _anime_session_ids}}, {"_id": 0})
+    anime_docs = {d["id"]: d for d in await anime_cursor.to_list(length=100)}
+    anime_series = [anime_docs[i] for i in _anime_session_ids if i in anime_docs]
+
+    return {
+        "newReleases": new_releases,
+        "popularClassics": classics[:8],
+        "animeSeries": anime_series,
+    }
 
 
 @app.get("/api/restaurants")

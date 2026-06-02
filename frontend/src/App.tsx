@@ -1055,21 +1055,27 @@ function WhereCinema() {
   const [, navigate] = useLocation();
   const search = useSearch();
   const [selectedMovie, setSelectedMovie] = React.useState<{ title: string; year: string; genre: string } | null>(null);
-  const [selectedCategory, setSelectedCategory] = React.useState<"new" | "classics">("new");
+  const [selectedCategory, setSelectedCategory] = React.useState<"new" | "classics" | "anime">("new");
 
   const { data: movies, isLoading } = useQuery({
     queryKey: ['movies'],
     queryFn: fetchMovies,
   });
 
-  const currentMovies = selectedCategory === "new" ? (movies?.newReleases || []) : (movies?.popularClassics || []);
+  const currentMovies =
+    selectedCategory === "new" ? (movies?.newReleases || []) :
+    selectedCategory === "classics" ? (movies?.popularClassics || []) :
+    (movies?.animeSeries || []);
+
+  const continueLabel =
+    selectedCategory === "anime" ? "Anime" : "Movie";
 
   function handleContinue() {
     if (selectedMovie) {
       const params = new URLSearchParams(search);
-      params.set("title", `Movie: ${selectedMovie.title} (${selectedMovie.year})`);
+      params.set("title", `${continueLabel}: ${selectedMovie.title} (${selectedMovie.year})`);
       params.set("venueId", "cinema");
-      params.set("location", "Cinema");
+      params.set("location", selectedCategory === "anime" ? "Movie Night (Anime)" : "Cinema");
       params.set("movie", selectedMovie.title);
       params.set("year", selectedMovie.year);
       params.set("genre", selectedMovie.genre);
@@ -1104,25 +1110,39 @@ function WhereCinema() {
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => { setSelectedCategory("new"); setSelectedMovie(null); }}
-            className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-all ${
+            data-testid="tab-new"
+            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
               selectedCategory === "new"
                 ? "bg-primary text-primary-foreground"
                 : "bg-card border border-border text-muted-foreground hover:border-primary/30"
             }`}
           >
-            <Sparkles className="w-4 h-4 inline mr-2" />
-            2026 Releases
+            <Sparkles className="w-4 h-4 inline mr-1.5" />
+            New
           </button>
           <button
             onClick={() => { setSelectedCategory("classics"); setSelectedMovie(null); }}
-            className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-all ${
+            data-testid="tab-classics"
+            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
               selectedCategory === "classics"
                 ? "bg-primary text-primary-foreground"
                 : "bg-card border border-border text-muted-foreground hover:border-primary/30"
             }`}
           >
-            <Heart className="w-4 h-4 inline mr-2" />
+            <Heart className="w-4 h-4 inline mr-1.5" />
             Classics
+          </button>
+          <button
+            onClick={() => { setSelectedCategory("anime"); setSelectedMovie(null); }}
+            data-testid="tab-anime"
+            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
+              selectedCategory === "anime"
+                ? "bg-primary text-primary-foreground"
+                : "bg-card border border-border text-muted-foreground hover:border-primary/30"
+            }`}
+          >
+            <Star className="w-4 h-4 inline mr-1.5" />
+            Anime
           </button>
         </div>
 

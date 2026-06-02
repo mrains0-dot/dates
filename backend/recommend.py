@@ -95,7 +95,7 @@ CUISINE_OVERPASS_MAP = {
 }
 
 
-async def fetch_nearby(lat: float, lon: float, date_type: str, radius_m: int = 8000,
+async def fetch_nearby(lat: float, lon: float, date_type: str, radius_m: int = 20000,
                        limit: int = 15, preferences: str = "") -> list:
     """Query OSM Overpass for nearby places of the given date-type, return list of {name, address, distance_m}."""
     tag = OSM_QUERY_FOR_TYPE.get(date_type) or OSM_QUERY_FOR_TYPE["custom"]
