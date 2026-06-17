@@ -1,20 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useSearch } from "wouter";
-import { Heart, ChevronRight, Check, ChevronLeft } from "lucide-react";
+import { Heart, ChevronRight, Check, ChevronLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StepDots } from "@/components/step-dots";
 
-const NEW_MOVIES = [
-  { id: "minecraft", label: "A Minecraft Movie", year: "2025" },
-  { id: "sinners", label: "Sinners", year: "2025" },
-  { id: "wicked", label: "Wicked", year: "2024" },
-  { id: "nosferatu", label: "Nosferatu", year: "2024" },
-  { id: "gladiator2", label: "Gladiator II", year: "2024" },
-  { id: "substance", label: "The Substance", year: "2024" },
-  { id: "insideout2", label: "Inside Out 2", year: "2024" },
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+interface Movie {
+  id: string;
+  label: string;
+  year: string;
+  genre?: string;
+}
+
+const FALLBACK_NOW_SHOWING: Movie[] = [
+  { id: "avengers-doomsday", label: "Avengers: Doomsday", year: "2026", genre: "Action/Superhero" },
+  { id: "mission-impossible-fr", label: "Mission: Impossible – The Final Reckoning", year: "2026", genre: "Action/Thriller" },
+  { id: "jurassic-world-rebirth", label: "Jurassic World Rebirth", year: "2026", genre: "Action/Adventure" },
+  { id: "28-years-later", label: "28 Years Later", year: "2026", genre: "Horror/Thriller" },
+  { id: "lilo-stitch", label: "Lilo & Stitch", year: "2026", genre: "Animation/Family" },
+  { id: "thunderbolts", label: "Thunderbolts*", year: "2026", genre: "Action/Superhero" },
 ];
 
-const CLASSIC_MOVIES = [
+const FALLBACK_CLASSICS: Movie[] = [
   { id: "notebook", label: "The Notebook", year: "2004" },
   { id: "titanic", label: "Titanic", year: "1997" },
   { id: "pride", label: "Pride & Prejudice", year: "2005" },
@@ -26,7 +35,7 @@ const CLASSIC_MOVIES = [
 ];
 
 function MovieOption({ movie, isSelected, onSelect }: {
-  movie: { id: string; label: string; year: string };
+  movie: Movie;
   isSelected: boolean;
   onSelect: () => void;
 }) {
@@ -41,7 +50,9 @@ function MovieOption({ movie, isSelected, onSelect }: {
     >
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm text-foreground">{movie.label}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{movie.year}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          {movie.genre ? `${movie.year} · ${movie.genre}` : movie.year}
+        </p>
       </div>
       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
         isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
@@ -56,17 +67,47 @@ export default function WhereMovies() {
   const [, navigate] = useLocation();
   const search = useSearch();
   const [selected, setSelected] = useState<string | null>(null);
+  const [nowShowing, setNowShowing] = useState<Movie[]>(FALLBACK_NOW_SHOWING);
+  const [classics, setClassics] = useState<Movie[]>(FALLBACK_CLASSICS);
+  const [loading, setLoading] = useState(true);
 
-  const allMovies = [...NEW_MOVIES, ...CLASSIC_MOVIES];
+  useEffect(() => {
+    async function loadMovies() {
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/functions/v1/get-movies`,
+          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (Array.isArray(data.nowShowing) && data.nowShowing.length > 0) {
+          setNowShowing(data.nowShowing);
+        }
+        if (Array.isArray(data.classics) && data.classics.length > 0) {
+          setClassics(data.classics);
+        }
+      } catch {
+        // fallback data already set
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadMovies();
+  }, []);
+
+  const allMovies = [...nowShowing, ...classics];
 
   function handleContinue() {
     const movie = allMovies.find((m) => m.id === selected);
     const params = new URLSearchParams(search);
-    params.set("title", movie ? `${movie.label}` : "Movie Night");
+    params.set("title", movie ? movie.label : "Movie Night");
     params.set("location", "Cinema");
     params.set("venueId", "cinema");
     navigate(`/confirm?${params.toString()}`);
   }
+
+  const now = new Date();
+  const monthLabel = now.toLocaleString("en-US", { month: "long", year: "numeric" });
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-5 py-12">
@@ -87,9 +128,19 @@ export default function WhereMovies() {
         </h1>
         <p className="text-muted-foreground mb-8">Pick something to watch together.</p>
 
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-3">Now showing</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
+            Now showing
+          </p>
+          {loading ? (
+            <Loader2 className="w-3.5 h-3.5 text-muted-foreground/40 animate-spin" />
+          ) : (
+            <p className="text-xs text-muted-foreground/40">{monthLabel}</p>
+          )}
+        </div>
+
         <div className="space-y-2.5 mb-6">
-          {NEW_MOVIES.map((movie) => (
+          {nowShowing.map((movie) => (
             <MovieOption
               key={movie.id}
               movie={movie}
@@ -101,7 +152,7 @@ export default function WhereMovies() {
 
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-3">Beloved classics</p>
         <div className="space-y-2.5 mb-8">
-          {CLASSIC_MOVIES.map((movie) => (
+          {classics.map((movie) => (
             <MovieOption
               key={movie.id}
               movie={movie}
