@@ -293,6 +293,86 @@ async function fetchNearbyRestaurants(cuisineLabel: string, lat: number, lon: nu
     }));
 }
 
+// ─── Nearby places (hiking / museum / cocktails / stargazing) ────────────────
+const NEARBY_RADIUS_M = 48280; // 30 miles
+
+function buildOverpassQuery(parts: string[], lat: number, lon: number): string {
+  return `[out:json][timeout:25];(${parts.join("")});out tags center 20;`
+    .replace(/\{lat\}/g, String(lat))
+    .replace(/\{lon\}/g, String(lon));
+}
+
+const NEARBY_OSM_QUERIES: Record<string, (lat: number, lon: number) => string> = {
+  hiking: (lat, lon) => buildOverpassQuery([
+    `node["leisure"~"^(park|nature_reserve|recreation_ground)$"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `way["leisure"~"^(park|nature_reserve|recreation_ground)$"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `node["route"="hiking"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `way["route"="hiking"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+  ], lat, lon),
+  museum: (lat, lon) => buildOverpassQuery([
+    `node["tourism"~"^(museum|gallery)$"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `way["tourism"~"^(museum|gallery)$"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `node["amenity"="arts_centre"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `way["amenity"="arts_centre"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+  ], lat, lon),
+  cocktails: (lat, lon) => buildOverpassQuery([
+    `node["amenity"~"^(bar|pub)$"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `way["amenity"~"^(bar|pub)$"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `node["amenity"="nightclub"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `way["amenity"="nightclub"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+  ], lat, lon),
+  stargazing: (lat, lon) => buildOverpassQuery([
+    `node["amenity"="planetarium"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `way["amenity"="planetarium"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `node["tourism"="attraction"]["name"~"observatory|planetarium|astro|stargazing",i](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `way["tourism"="attraction"]["name"~"observatory|planetarium|astro|stargazing",i](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `way["leisure"~"^(nature_reserve|park)$"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+    `node["leisure"="nature_reserve"](around:${NEARBY_RADIUS_M},${lat},${lon});`,
+  ], lat, lon),
+};
+
+function haversineM(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+
+async function fetchNearbyPlaces(typeId: string, lat: number, lon: number) {
+  const queryFn = NEARBY_OSM_QUERIES[typeId];
+  if (!queryFn) return [];
+  const res = await fetch("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "DatePlanner/1.0" },
+    body: `data=${encodeURIComponent(queryFn(lat, lon))}`,
+  });
+  if (!res.ok) throw new Error("Overpass error");
+  const json = await res.json();
+  const seen = new Set<string>();
+  return (json.elements || [])
+    .filter((el: any) => el.tags?.name)
+    .filter((el: any) => { if (seen.has(el.tags.name)) return false; seen.add(el.tags.name); return true; })
+    .map((el: any) => {
+      const elLat = el.lat ?? el.center?.lat ?? lat;
+      const elLon = el.lon ?? el.center?.lon ?? lon;
+      const addr = [
+        el.tags["addr:housenumber"] && el.tags["addr:street"]
+          ? `${el.tags["addr:housenumber"]} ${el.tags["addr:street"]}`
+          : el.tags["addr:street"],
+        el.tags["addr:city"],
+      ].filter(Boolean).join(", ");
+      return {
+        name: el.tags.name as string,
+        address: addr,
+        distance_m: haversineM(lat, lon, elLat, elLon),
+        kind: (el.tags.amenity || el.tags.tourism || el.tags.leisure || el.tags.route || "") as string,
+      };
+    })
+    .sort((a: any, b: any) => a.distance_m - b.distance_m)
+    .slice(0, 6) as { name: string; address: string; distance_m: number; kind: string }[];
+}
+
 // Location — uses IP geolocation (no permission needed) then silently upgrades
 // to browser GPS if available, caching the result for 30 min.
 function getCachedLocation(): { lat: number; lon: number } | null {
@@ -1588,6 +1668,93 @@ const SUB_ICONS: Record<string, LucideIcon> = {
   Droplets, Heart,
 };
 
+const NEARBY_SUPPORTED = new Set(["hiking", "museum", "cocktails", "stargazing"]);
+
+function NearbyPlacesPanel({ typeId }: { typeId: string }) {
+  const [, navigate] = useLocation();
+  const search = useSearch();
+  type Place = { name: string; address: string; distance_m: number; kind: string };
+  const [places, setPlaces] = React.useState<Place[]>([]);
+  const [status, setStatus] = React.useState<"loading" | "done" | "error">("loading");
+
+  React.useEffect(() => {
+    if (!NEARBY_SUPPORTED.has(typeId)) return;
+    setStatus("loading");
+    setPlaces([]);
+    getUserLocation()
+      .then(({ lat, lon }) => fetchNearbyPlaces(typeId, lat, lon))
+      .then((data) => { setPlaces(data); setStatus("done"); })
+      .catch(() => setStatus("error"));
+  }, [typeId]);
+
+  if (!NEARBY_SUPPORTED.has(typeId)) return null;
+  if (status === "error" || (status === "done" && places.length === 0)) return null;
+
+  function formatDist(m: number) {
+    const mi = m / 1609.34;
+    return mi < 0.1 ? "< 0.1 mi" : `${mi.toFixed(1)} mi`;
+  }
+
+  function handleSelect(place: Place) {
+    const params = new URLSearchParams(search);
+    params.set("title", place.name);
+    params.set("location", place.address || place.name);
+    params.set("venueId", typeId);
+    navigate(`/confirm?${params.toString()}`);
+  }
+
+  return (
+    <div className="mb-6">
+      <div className="flex items-center gap-2 mb-3">
+        <MapPin className="w-3.5 h-3.5 text-primary" />
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
+          Places Near You
+        </p>
+        {status === "loading" && (
+          <Loader2 className="w-3 h-3 animate-spin text-muted-foreground/40 ml-auto" />
+        )}
+      </div>
+
+      {status === "loading" ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-[58px] rounded-2xl bg-muted/40 animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {places.map((place) => (
+            <button
+              key={place.name}
+              onClick={() => handleSelect(place)}
+              className="w-full flex items-center gap-3 rounded-2xl border-2 border-border bg-card p-3 text-left hover:border-primary/50 hover:bg-primary/5 active:scale-[0.99] transition-all duration-150"
+            >
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm text-foreground truncate">{place.name}</p>
+                {place.address && (
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">{place.address}</p>
+                )}
+              </div>
+              <span className="text-xs text-muted-foreground/60 flex-shrink-0 tabular-nums">
+                {formatDist(place.distance_m)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {status === "done" && places.length > 0 && (
+        <p className="text-xs text-muted-foreground/40 text-center mt-3 mb-1">
+          Or choose a vibe below
+        </p>
+      )}
+    </div>
+  );
+}
+
 function WhereGeneric({ params: routeParams }: { params: { typeId: string } }) {
   const [, navigate] = useLocation();
   const search = useSearch();
@@ -1659,7 +1826,7 @@ function WhereGeneric({ params: routeParams }: { params: { typeId: string } }) {
           </div>
         </div>
 
-        <RecommendPanel dateType={typeId} />
+        <NearbyPlacesPanel typeId={typeId} />
 
         {isLoading || !data ? (
           <div className="flex items-center justify-center py-12">
