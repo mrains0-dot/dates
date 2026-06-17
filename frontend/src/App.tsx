@@ -21,267 +21,301 @@ const queryClient = new QueryClient({
   },
 });
 
-// Date option illustrations — vintage Art Deco / WPA poster style
+
+// Date option illustrations — Impressionist / Monet style
 const DateIllustrations = {
-  // RESTAURANT — two wine glasses clinking + candle between them
+
+  // RESTAURANT — soft-lit bistro table, candle glow, flower cluster, wine glasses
   restaurant: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.08)"/>
-      {/* Left glass bowl — angular trapezoid */}
-      <path d="M12 18 L36 18 L30 52 L18 52 Z" fill="hsl(var(--primary) / 0.16)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Wine fill */}
-      <path d="M15 34 L33 34 L30 52 L18 52 Z" fill="hsl(var(--primary) / 0.38)" stroke="none"/>
-      <line x1="24" y1="52" x2="24" y2="72" stroke="hsl(var(--primary))" strokeWidth="2.2"/>
-      <line x1="14" y1="74" x2="34" y2="74" stroke="hsl(var(--primary))" strokeWidth="2.8"/>
-      {/* Right glass bowl */}
-      <path d="M64 18 L88 18 L82 52 L70 52 Z" fill="hsl(var(--primary) / 0.16)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      <path d="M67 34 L85 34 L82 52 L70 52 Z" fill="hsl(var(--primary) / 0.38)" stroke="none"/>
-      <line x1="76" y1="52" x2="76" y2="72" stroke="hsl(var(--primary))" strokeWidth="2.2"/>
-      <line x1="66" y1="74" x2="86" y2="74" stroke="hsl(var(--primary))" strokeWidth="2.8"/>
-      {/* Candle body */}
-      <rect x="45" y="42" width="10" height="26" fill="hsl(var(--primary) / 0.16)" stroke="hsl(var(--primary))" strokeWidth="2"/>
-      <line x1="45" y1="50" x2="55" y2="50" stroke="hsl(var(--primary))" strokeWidth="0.9" opacity="0.3"/>
-      <line x1="45" y1="56" x2="55" y2="56" stroke="hsl(var(--primary))" strokeWidth="0.9" opacity="0.3"/>
-      {/* Flame — angular diamond */}
-      <path d="M50 22 L54 32 L50 40 L46 32 Z" fill="hsl(var(--primary) / 0.3)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="miter"/>
-      <path d="M50 26 L52 32 L50 38 L48 32 Z" fill="hsl(var(--primary))" strokeLinejoin="miter"/>
-      <line x1="50" y1="40" x2="50" y2="44" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
-      {/* Holder */}
-      <path d="M41 68 L43 76 L57 76 L59 68 Z" fill="hsl(var(--primary) / 0.35)" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinejoin="miter"/>
-      {/* Clink lines between glasses */}
-      <line x1="36" y1="18" x2="42" y2="24" stroke="hsl(var(--primary))" strokeWidth="1.2" opacity="0.45"/>
-      <line x1="64" y1="18" x2="58" y2="24" stroke="hsl(var(--primary))" strokeWidth="1.2" opacity="0.45"/>
-      <line x1="50" y1="14" x2="50" y2="20" stroke="hsl(var(--primary))" strokeWidth="1.2" opacity="0.35"/>
+      <defs><filter id="f-r"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.07)"/>
+      {/* Warm ambient glow — blurred wash */}
+      <ellipse cx="50" cy="46" rx="28" ry="22" fill="hsl(var(--primary) / 0.12)" filter="url(#f-r)"/>
+      {/* Table oval */}
+      <ellipse cx="50" cy="72" rx="29" ry="10" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary) / 0.4)" strokeWidth="1.2" strokeLinecap="round"/>
+      <line x1="50" y1="82" x2="50" y2="88" stroke="hsl(var(--primary) / 0.4)" strokeWidth="2.5" strokeLinecap="round"/>
+      <ellipse cx="50" cy="89" rx="8" ry="2.5" fill="hsl(var(--primary) / 0.2)"/>
+      {/* Left glass — oval bowl + stem */}
+      <ellipse cx="27" cy="54" rx="6.5" ry="4" fill="hsl(var(--primary) / 0.22)" stroke="hsl(var(--primary) / 0.5)" strokeWidth="1.2"/>
+      <path d="M24 58 Q25 67 25 74 M21 76 L29 76" stroke="hsl(var(--primary) / 0.5)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Right glass */}
+      <ellipse cx="73" cy="54" rx="6.5" ry="4" fill="hsl(var(--primary) / 0.22)" stroke="hsl(var(--primary) / 0.5)" strokeWidth="1.2"/>
+      <path d="M70 58 Q75 67 75 74 M71 76 L79 76" stroke="hsl(var(--primary) / 0.5)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Flower cluster — impressionist dabs */}
+      <ellipse cx="50" cy="49" rx="11" ry="8" fill="hsl(var(--primary) / 0.1)" filter="url(#f-r)"/>
+      {([...Array(12)] as undefined[]).map((_, i) => {
+        const a = (i / 12) * Math.PI * 2;
+        const rr = 3 + (i % 3) * 3.5;
+        return <circle key={i} cx={50 + rr * Math.cos(a)} cy={47 + rr * 0.6 * Math.sin(a)} r="3.2" fill="hsl(var(--primary))" opacity={0.15 + (i % 5) * 0.1}/>;
+      })}
+      <circle cx="50" cy="43" r="2.8" fill="hsl(var(--primary) / 0.55)"/>
+      {/* Candle flame soft glow */}
+      <circle cx="50" cy="28" r="9" fill="hsl(var(--primary) / 0.15)" filter="url(#f-r)"/>
+      <circle cx="50" cy="29" r="3.5" fill="hsl(var(--primary) / 0.5)"/>
+      <line x1="50" y1="33" x2="50" y2="43" stroke="hsl(var(--primary) / 0.22)" strokeWidth="1.8" strokeLinecap="round"/>
     </svg>
   ),
 
-  // CINEMA — film clapperboard, open position with diagonal stripes
+  // CINEMA — glowing outdoor screen at night, audience silhouettes, projector beam
   cinema: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
+      <defs><filter id="f-c"><feGaussianBlur stdDeviation="2.5"/></filter></defs>
       <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.08)"/>
-      {/* Slate board */}
-      <rect x="18" y="48" width="64" height="40" fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="2.2"/>
-      {/* Scene lines */}
-      <line x1="24" y1="58" x2="76" y2="58" stroke="hsl(var(--primary))" strokeWidth="1.5" opacity="0.4"/>
-      <line x1="24" y1="67" x2="68" y2="67" stroke="hsl(var(--primary))" strokeWidth="1.5" opacity="0.4"/>
-      <line x1="24" y1="76" x2="58" y2="76" stroke="hsl(var(--primary))" strokeWidth="1.5" opacity="0.4"/>
-      {/* Hinge strip */}
-      <rect x="18" y="44" width="64" height="5" fill="hsl(var(--primary))"/>
-      {/* Clapper arm — angled open (parallelogram) */}
-      <path d="M18 44 L22 26 L84 16 L82 32 Z" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2.2" strokeLinejoin="miter"/>
-      {/* Stripe dividers on arm */}
-      <line x1="30" y1="44" x2="32" y2="25" stroke="hsl(var(--primary))" strokeWidth="4.5" opacity="0.5"/>
-      <line x1="42" y1="42" x2="44" y2="22" stroke="hsl(var(--primary))" strokeWidth="4.5" opacity="0.5"/>
-      <line x1="54" y1="40" x2="56" y2="20" stroke="hsl(var(--primary))" strokeWidth="4.5" opacity="0.5"/>
-      <line x1="66" y1="38" x2="68" y2="18" stroke="hsl(var(--primary))" strokeWidth="4.5" opacity="0.5"/>
-      {/* Hinge dots */}
-      <circle cx="26" cy="46" r="2.5" fill="hsl(var(--primary) / 0.5)"/>
-      <circle cx="74" cy="46" r="2.5" fill="hsl(var(--primary) / 0.5)"/>
+      {/* Night sky — dark soft wash */}
+      <ellipse cx="50" cy="30" rx="40" ry="26" fill="hsl(var(--primary) / 0.06)" filter="url(#f-c)"/>
+      {/* Scattered stars */}
+      {([[15,16],[28,12],[42,10],[58,8],[72,14],[84,20],[90,10],[6,26]] as [number,number][]).map(([x,y],i) => (
+        <circle key={i} cx={x} cy={y} r={1 + (i % 3) * 0.5} fill="hsl(var(--primary))" opacity={0.35 + (i % 3) * 0.15}/>
+      ))}
+      {/* Screen glow — soft rectangle */}
+      <rect x="18" y="22" width="64" height="42" rx="1" fill="hsl(var(--primary) / 0.12)" filter="url(#f-c)"/>
+      <rect x="18" y="22" width="64" height="42" rx="1" fill="hsl(var(--primary) / 0.14)" stroke="hsl(var(--primary) / 0.35)" strokeWidth="1.5"/>
+      {/* Screen inner painting suggestion — soft dabs */}
+      <ellipse cx="40" cy="38" rx="10" ry="8" fill="hsl(var(--primary) / 0.22)" filter="url(#f-c)"/>
+      <ellipse cx="64" cy="34" rx="8" ry="6" fill="hsl(var(--primary) / 0.18)" filter="url(#f-c)"/>
+      <ellipse cx="50" cy="45" rx="14" ry="6" fill="hsl(var(--primary) / 0.2)" filter="url(#f-c)"/>
+      {/* Projector beam — soft light cone */}
+      <path d="M50 90 L32 64 L68 64 Z" fill="hsl(var(--primary) / 0.08)" filter="url(#f-c)"/>
+      {/* Audience silhouettes — small rounded heads */}
+      {([[22,80],[34,82],[46,80],[54,82],[66,80],[78,82],[28,88],[40,86],[56,86],[70,88]] as [number,number][]).map(([x,y],i) => (
+        <circle key={i} cx={x} cy={y} r="4.5" fill="hsl(var(--primary))" opacity={0.3 + (i % 3) * 0.1}/>
+      ))}
+      {/* Seat row lines */}
+      <line x1="14" y1="90" x2="86" y2="90" stroke="hsl(var(--primary) / 0.2)" strokeWidth="1.2"/>
     </svg>
   ),
 
-  // PICNIC — wicker basket with rectangular-arch handle, angular weave
+  // PICNIC — Monet's Poppy Field (1873): rolling meadow, scattered flowers, sky
   picnic: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.08)"/>
-      {/* Handle — sharp rectangular arch */}
-      <path d="M28 56 L28 32 L72 32 L72 56" fill="none" stroke="hsl(var(--primary))" strokeWidth="4.5" strokeLinejoin="miter"/>
-      {/* Handle grip bar */}
-      <rect x="42" y="28" width="16" height="8" fill="hsl(var(--primary) / 0.35)" stroke="hsl(var(--primary))" strokeWidth="1.8"/>
-      {/* Basket body */}
-      <path d="M20 56 L80 56 L74 88 L26 88 Z" fill="hsl(var(--primary) / 0.16)" stroke="hsl(var(--primary))" strokeWidth="2.2" strokeLinejoin="miter"/>
-      {/* Lid band */}
-      <rect x="20" y="50" width="60" height="8" fill="hsl(var(--primary) / 0.35)" stroke="hsl(var(--primary))" strokeWidth="2"/>
-      {/* Vertical weave */}
-      <line x1="36" y1="58" x2="33" y2="88" stroke="hsl(var(--primary))" strokeWidth="1.3" opacity="0.5"/>
-      <line x1="50" y1="58" x2="50" y2="88" stroke="hsl(var(--primary))" strokeWidth="1.3" opacity="0.5"/>
-      <line x1="64" y1="58" x2="67" y2="88" stroke="hsl(var(--primary))" strokeWidth="1.3" opacity="0.5"/>
-      {/* Horizontal weave */}
-      <line x1="22" y1="68" x2="78" y2="68" stroke="hsl(var(--primary))" strokeWidth="1.3" opacity="0.5"/>
-      <line x1="24" y1="78" x2="76" y2="78" stroke="hsl(var(--primary))" strokeWidth="1.3" opacity="0.5"/>
-      {/* Apple peeking over lid */}
-      <path d="M62 48 Q66 38 70 48" fill="hsl(var(--primary) / 0.28)" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinejoin="miter"/>
-      {/* Baguette tip */}
-      <path d="M30 48 L38 42 L40 48" fill="hsl(var(--primary) / 0.28)" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinejoin="miter"/>
+      <defs><filter id="f-p"><feGaussianBlur stdDeviation="2"/></filter></defs>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.07)"/>
+      {/* Sky wash */}
+      <ellipse cx="50" cy="28" rx="44" ry="24" fill="hsl(var(--primary) / 0.1)" filter="url(#f-p)"/>
+      {/* Distant hill — soft, pale */}
+      <path d="M5 55 Q30 38 55 50 Q70 42 95 55 L95 100 L5 100 Z" fill="hsl(var(--primary) / 0.08)" filter="url(#f-p)"/>
+      {/* Rolling meadow layers */}
+      <path d="M5 65 Q25 54 50 62 Q72 54 95 65 L95 100 L5 100 Z" fill="hsl(var(--primary) / 0.14)"/>
+      <path d="M5 74 Q28 65 50 70 Q70 64 95 72 L95 100 L5 100 Z" fill="hsl(var(--primary) / 0.2)"/>
+      <path d="M5 84 Q30 76 50 80 Q72 74 95 82 L95 100 L5 100 Z" fill="hsl(var(--primary) / 0.28)"/>
+      {/* Scattered poppy dabs — near */}
+      {([[18,80],[26,76],[32,82],[22,86],[38,78],[14,88],[42,86]] as [number,number][]).map(([x,y],i) => (
+        <circle key={`n${i}`} cx={x} cy={y} r={2.8 - i*0.1} fill="hsl(var(--primary))" opacity={0.55 + (i%3)*0.1}/>
+      ))}
+      {/* Mid-distance poppies */}
+      {([[55,70],[63,68],[72,72],[48,66],[80,70],[58,76],[68,76]] as [number,number][]).map(([x,y],i) => (
+        <circle key={`m${i}`} cx={x} cy={y} r="2.2" fill="hsl(var(--primary))" opacity={0.4 + (i%3)*0.08}/>
+      ))}
+      {/* Far poppies — tiny dots */}
+      {([[30,60],[40,58],[52,56],[62,58],[74,60],[84,62]] as [number,number][]).map(([x,y],i) => (
+        <circle key={`f${i}`} cx={x} cy={y} r="1.4" fill="hsl(var(--primary))" opacity={0.25}/>
+      ))}
+      {/* Two small figure suggestions */}
+      <circle cx="35" cy="66" r="3" fill="hsl(var(--primary) / 0.5)"/>
+      <circle cx="42" cy="64" r="2.2" fill="hsl(var(--primary) / 0.4)"/>
+      {/* Blanket suggestion */}
+      <path d="M56 80 Q68 76 76 82" stroke="hsl(var(--primary) / 0.35)" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
     </svg>
   ),
 
-  // HIKING — angular WPA-style mountains with switchback trail + pine trees
+  // HIKING — misty layered forest path (Monet's atmospheric landscapes)
   hiking: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.08)"/>
-      {/* Back range — lower, lighter */}
-      <path d="M8 80 L30 46 L52 68 L66 52 L92 80 Z" fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary) / 0.45)" strokeWidth="1.5" strokeLinejoin="miter"/>
-      {/* Main peak — bold foreground */}
-      <path d="M14 80 L50 18 L86 80 Z" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
-      {/* Snow cap polygon */}
-      <path d="M50 18 L60 44 L56 45 L50 28 L44 45 L40 44 Z" fill="hsl(var(--primary))" opacity="0.9"/>
-      {/* Ground */}
-      <line x1="8" y1="80" x2="92" y2="80" stroke="hsl(var(--primary))" strokeWidth="2.2"/>
-      {/* Switchback trail — dashed zigzag */}
-      <polyline points="24,80 34,65 44,65 54,50 64,50 74,36"
-        fill="none" stroke="hsl(var(--primary))" strokeWidth="1.8"
-        strokeLinejoin="miter" strokeDasharray="3.5 2.5" opacity="0.7"/>
-      {/* Pine trees */}
-      <polygon points="20,80 26,60 32,80" fill="hsl(var(--primary) / 0.45)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
-      <polygon points="70,80 76,62 82,80" fill="hsl(var(--primary) / 0.45)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
-      {/* Sun — top right corner */}
-      <polygon points="84,16 86,22 80,22" fill="hsl(var(--primary))" opacity="0.75"/>
-      <line x1="88" y1="14" x2="90" y2="20" stroke="hsl(var(--primary))" strokeWidth="1.4" strokeLinecap="square" opacity="0.6"/>
-      <line x1="90" y1="20" x2="94" y2="20" stroke="hsl(var(--primary))" strokeWidth="1.4" strokeLinecap="square" opacity="0.6"/>
+      <defs><filter id="f-h"><feGaussianBlur stdDeviation="2.5"/></filter></defs>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.07)"/>
+      {/* Sky wash */}
+      <ellipse cx="50" cy="28" rx="42" ry="26" fill="hsl(var(--primary) / 0.08)" filter="url(#f-h)"/>
+      {/* Distant mist layer */}
+      <path d="M5 52 Q50 38 95 52 L95 100 L5 100 Z" fill="hsl(var(--primary) / 0.07)" filter="url(#f-h)"/>
+      {/* Back tree line — blurred */}
+      {([[10,52],[20,46],[30,50],[38,44],[50,48],[62,44],[72,50],[82,46],[92,52]] as [number,number][]).map(([x,y],i) => (
+        <ellipse key={i} cx={x} cy={y} rx="8" ry={12 + (i%3)*3} fill="hsl(var(--primary))" opacity={0.1 + (i%2)*0.05} filter="url(#f-h)"/>
+      ))}
+      {/* Mid-ground tree blobs */}
+      {([[14,66],[26,60],[38,68],[62,60],[74,66],[86,62]] as [number,number][]).map(([x,y],i) => (
+        <ellipse key={i} cx={x} cy={y} rx="10" ry={16 + (i%3)*4} fill="hsl(var(--primary))" opacity={0.18 + (i%3)*0.06} filter="url(#f-h)"/>
+      ))}
+      {/* Foreground foliage dabs */}
+      {([[8,82],[18,78],[30,84],[44,80]] as [number,number][]).map(([x,y],i) => (
+        <ellipse key={i} cx={x} cy={y} rx="9" ry="7" fill="hsl(var(--primary))" opacity={0.28 + i*0.05}/>
+      ))}
+      {([[56,80],[68,84],[80,78],[92,82]] as [number,number][]).map(([x,y],i) => (
+        <ellipse key={i} cx={x} cy={y} rx="9" ry="7" fill="hsl(var(--primary))" opacity={0.28 + i*0.05}/>
+      ))}
+      {/* Path through trees — converging lines to vanishing point */}
+      <path d="M36 95 Q48 68 50 42" stroke="hsl(var(--primary) / 0.35)" strokeWidth="4" fill="none" strokeLinecap="round"/>
+      <path d="M64 95 Q52 68 50 42" stroke="hsl(var(--primary) / 0.35)" strokeWidth="4" fill="none" strokeLinecap="round"/>
+      <path d="M36 95 Q48 68 50 42 Q52 68 64 95" fill="hsl(var(--primary) / 0.1)"/>
+      {/* Light at path end */}
+      <circle cx="50" cy="40" r="10" fill="hsl(var(--primary) / 0.18)" filter="url(#f-h)"/>
     </svg>
   ),
 
-  // COOKING — tall toque chef hat + crossed fork and spoon below
+  // COOKING — Monet's kitchen garden: herbs, pot, steam in warm light
   cooking: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.08)"/>
-      {/* Hat band */}
-      <rect x="28" y="54" width="44" height="10" fill="hsl(var(--primary) / 0.35)" stroke="hsl(var(--primary))" strokeWidth="2.2"/>
-      {[33,38,43,48,53,58,63,68].map(x => (
-        <line key={x} x1={x} y1="54" x2={x} y2="64" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.35"/>
+      <defs><filter id="f-co"><feGaussianBlur stdDeviation="2"/></filter></defs>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.07)"/>
+      {/* Warm kitchen light wash */}
+      <ellipse cx="50" cy="44" rx="30" ry="26" fill="hsl(var(--primary) / 0.12)" filter="url(#f-co)"/>
+      {/* Pot body — soft rounded */}
+      <path d="M24 60 Q22 50 24 44 Q50 38 76 44 Q78 50 76 60 Q50 66 24 60 Z" fill="hsl(var(--primary) / 0.22)" stroke="hsl(var(--primary) / 0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Lid */}
+      <path d="M28 44 Q50 36 72 44" fill="hsl(var(--primary) / 0.3)" stroke="hsl(var(--primary) / 0.55)" strokeWidth="1.5" strokeLinecap="round"/>
+      {/* Lid knob */}
+      <circle cx="50" cy="36" r="3.5" fill="hsl(var(--primary) / 0.5)" stroke="hsl(var(--primary) / 0.6)" strokeWidth="1"/>
+      {/* Side handles */}
+      <path d="M24 50 Q14 50 14 56 Q14 62 24 62" stroke="hsl(var(--primary) / 0.55)" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
+      <path d="M76 50 Q86 50 86 56 Q86 62 76 62" stroke="hsl(var(--primary) / 0.55)" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
+      {/* Steam wisps — soft blurred */}
+      <path d="M38 36 Q34 28 38 20 Q42 12 38 4" stroke="hsl(var(--primary) / 0.3)" strokeWidth="2.5" fill="none" strokeLinecap="round" filter="url(#f-co)"/>
+      <path d="M50 32 Q46 22 50 14 Q54 6 50 0" stroke="hsl(var(--primary) / 0.3)" strokeWidth="2.5" fill="none" strokeLinecap="round" filter="url(#f-co)"/>
+      <path d="M62 36 Q66 28 62 20 Q58 12 62 4" stroke="hsl(var(--primary) / 0.3)" strokeWidth="2.5" fill="none" strokeLinecap="round" filter="url(#f-co)"/>
+      {/* Herb sprigs — dab clusters */}
+      {([[18,74],[22,80],[30,78],[16,80]] as [number,number][]).map(([x,y],i) => (
+        <circle key={`hl${i}`} cx={x} cy={y} r="3.2" fill="hsl(var(--primary))" opacity={0.25 + i*0.06}/>
       ))}
-      {/* Hat body — trapezoid */}
-      <path d="M32 54 L36 18 L64 18 L68 54 Z" fill="hsl(var(--primary) / 0.16)" stroke="hsl(var(--primary))" strokeWidth="2.2" strokeLinejoin="miter"/>
-      {/* Puff top — flat arc suggestion */}
-      <path d="M36 18 Q50 10 64 18" fill="hsl(var(--primary) / 0.25)" stroke="hsl(var(--primary))" strokeWidth="2.2"/>
-      {/* Crease lines on hat */}
-      <line x1="42" y1="54" x2="40" y2="20" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.3"/>
-      <line x1="58" y1="54" x2="60" y2="20" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.3"/>
-      {/* Spoon (left, angled) */}
-      <line x1="26" y1="64" x2="20" y2="88" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square"/>
-      <path d="M20 56 L30 56 L30 65 L20 65 Z" fill="hsl(var(--primary) / 0.22)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter" transform="rotate(-12 25 60)"/>
-      {/* Fork (right, angled) */}
-      <line x1="74" y1="64" x2="80" y2="88" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square"/>
-      <line x1="70" y1="56" x2="70" y2="64" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="square"/>
-      <line x1="74" y1="54" x2="74" y2="64" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="square"/>
-      <line x1="78" y1="56" x2="78" y2="64" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="square"/>
-      <line x1="70" y1="64" x2="78" y2="64" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="square"/>
+      {([[78,74],[80,80],[72,78],[84,80]] as [number,number][]).map(([x,y],i) => (
+        <circle key={`hr${i}`} cx={x} cy={y} r="3.2" fill="hsl(var(--primary))" opacity={0.25 + i*0.06}/>
+      ))}
+      {/* Herb stems */}
+      <line x1="20" y1="68" x2="20" y2="80" stroke="hsl(var(--primary) / 0.4)" strokeWidth="1.2" strokeLinecap="round"/>
+      <line x1="80" y1="68" x2="80" y2="80" stroke="hsl(var(--primary) / 0.4)" strokeWidth="1.2" strokeLinecap="round"/>
+      {/* Ground/counter line */}
+      <line x1="8" y1="86" x2="92" y2="86" stroke="hsl(var(--primary) / 0.2)" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
   ),
 
-  // MUSEUM — large ornate picture frame with classical bust silhouette
+  // MUSEUM — Monet's Water Lily Pond (Nymphéas): lily pads, flowers, bridge, reflections
   museum: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.08)"/>
-      {/* Frame outer */}
-      <rect x="14" y="14" width="72" height="72" fill="hsl(var(--primary) / 0.05)" stroke="hsl(var(--primary))" strokeWidth="5"/>
-      {/* Frame inner border */}
-      <rect x="21" y="21" width="58" height="58" fill="none" stroke="hsl(var(--primary))" strokeWidth="1.2" opacity="0.4"/>
-      {/* Corner ornaments — solid squares */}
-      <rect x="14" y="14" width="13" height="13" fill="hsl(var(--primary) / 0.45)"/>
-      <rect x="73" y="14" width="13" height="13" fill="hsl(var(--primary) / 0.45)"/>
-      <rect x="14" y="73" width="13" height="13" fill="hsl(var(--primary) / 0.45)"/>
-      <rect x="73" y="73" width="13" height="13" fill="hsl(var(--primary) / 0.45)"/>
-      {/* Corner diamonds */}
-      <path d="M20 20 L24 16 L28 20 L24 24 Z" fill="hsl(var(--primary))"/>
-      <path d="M72 20 L76 16 L80 20 L76 24 Z" fill="hsl(var(--primary))"/>
-      <path d="M20 80 L24 76 L28 80 L24 84 Z" fill="hsl(var(--primary))"/>
-      <path d="M72 80 L76 76 L80 80 L76 84 Z" fill="hsl(var(--primary))"/>
-      {/* Pedestal */}
-      <rect x="36" y="68" width="28" height="8" fill="hsl(var(--primary) / 0.32)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
-      {/* Classical bust — shoulders + neck + head profile */}
-      <path d="M40 68 L38 58 L40 50 Q50 43 60 50 L62 58 L60 68 Z" fill="hsl(var(--primary) / 0.25)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="miter"/>
-      <path d="M45 50 L43 42 Q50 34 57 42 L55 50 Z" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="miter"/>
+      <defs><filter id="f-mu"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.07)"/>
+      {/* Water — horizontal reflection bands */}
+      {[30,37,44,51,58,65,72,79,86].map((y,i) => (
+        <path key={i} d={`M8 ${y} Q${30 + (i%3)*10} ${y - 2} ${50 + (i%2)*5} ${y} Q${70 + (i%3)*5} ${y + 1} 92 ${y}`}
+          stroke="hsl(var(--primary))" strokeWidth={1 + (i % 3) * 0.4} fill="none" opacity={0.12 + i * 0.02} strokeLinecap="round"/>
+      ))}
+      {/* Bridge arch — Monet's Japanese bridge */}
+      <path d="M8 45 Q50 28 92 45" stroke="hsl(var(--primary) / 0.45)" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+      <path d="M8 45 Q50 30 92 45" fill="hsl(var(--primary) / 0.12)" stroke="none"/>
+      {/* Bridge railing verticals */}
+      {[14,22,30,38,46,54,62,70,78,86].map(x => (
+        <line key={x} x1={x} y1="45" x2={x} y2="38" stroke="hsl(var(--primary) / 0.3)" strokeWidth="1.2" strokeLinecap="round"/>
+      ))}
+      {/* Lily pads — ellipses at varying angles */}
+      {([[22,62],[38,70],[50,60],[62,72],[76,64],[30,78],[60,80],[44,84]] as [number,number][]).map(([x,y],i) => (
+        <ellipse key={i} cx={x} cy={y} rx={6 + (i%3)*2} ry={3.5 + (i%2)} fill="hsl(var(--primary))" opacity={0.22 + (i%4)*0.07}
+          transform={`rotate(${i*22} ${x} ${y})`}/>
+      ))}
+      {/* Water lily flowers — pink/white impressionist dabs */}
+      {([[36,68],[54,58],[70,70],[28,76],[62,78]] as [number,number][]).map(([x,y],i) => (
+        <circle key={i} cx={x} cy={y} r="3.5" fill="hsl(var(--primary))" opacity={0.5 + (i%3)*0.12}/>
+      ))}
+      {/* Weeping willow dabs top */}
+      {([[10,30],[16,24],[22,30],[88,26],[82,22],[76,28]] as [number,number][]).map(([x,y],i) => (
+        <ellipse key={i} cx={x} cy={y} rx="5" ry="8" fill="hsl(var(--primary))" opacity={0.15 + (i%3)*0.06} filter="url(#f-mu)"/>
+      ))}
     </svg>
   ),
 
-  // COCKTAILS — three bottles on a bar shelf + martini glass in front
+  // COCKTAILS — garden aperitif: climbing roses, soft arch, a wine glass
   cocktails: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.08)"/>
-      {/* Back wall */}
-      <line x1="10" y1="22" x2="90" y2="22" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.2"/>
-      {/* Shelf */}
-      <rect x="10" y="62" width="80" height="5" fill="hsl(var(--primary) / 0.35)" stroke="hsl(var(--primary))" strokeWidth="1.8"/>
-      {/* Bottle 1 — tall slender */}
-      <rect x="18" y="28" width="10" height="34" fill="hsl(var(--primary) / 0.18)" stroke="hsl(var(--primary))" strokeWidth="1.8"/>
-      <rect x="20" y="22" width="6" height="8" fill="hsl(var(--primary) / 0.28)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
-      <rect x="21" y="17" width="4" height="6" fill="hsl(var(--primary))"/>
-      <rect x="20" y="40" width="6" height="10" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="0.9"/>
-      {/* Bottle 2 — wide squat */}
-      <rect x="40" y="34" width="14" height="28" fill="hsl(var(--primary) / 0.18)" stroke="hsl(var(--primary))" strokeWidth="1.8"/>
-      <path d="M40 34 L40 26 L42 24 L52 24 L54 26 L54 34 Z" fill="hsl(var(--primary) / 0.26)" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinejoin="miter"/>
-      <rect x="44" y="19" width="6" height="6" fill="hsl(var(--primary))"/>
-      <rect x="41" y="42" width="12" height="12" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="0.9"/>
-      <line x1="42" y1="46" x2="52" y2="46" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.4"/>
-      <line x1="42" y1="50" x2="52" y2="50" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.4"/>
-      {/* Bottle 3 — medium */}
-      <rect x="66" y="30" width="12" height="32" fill="hsl(var(--primary) / 0.18)" stroke="hsl(var(--primary))" strokeWidth="1.8"/>
-      <rect x="68" y="22" width="8" height="10" fill="hsl(var(--primary) / 0.28)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
-      <rect x="69" y="17" width="6" height="6" fill="hsl(var(--primary))"/>
-      {/* Martini glass — angular, in front of shelf */}
-      <path d="M38 68 L62 68 L52 84 L48 84 Z" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      <line x1="50" y1="84" x2="50" y2="92" stroke="hsl(var(--primary))" strokeWidth="2.5"/>
-      <line x1="43" y1="94" x2="57" y2="94" stroke="hsl(var(--primary))" strokeWidth="2.8"/>
-      {/* Olive on pick */}
-      <line x1="54" y1="64" x2="58" y2="72" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
-      <circle cx="56" cy="68" r="2.5" fill="hsl(var(--primary))" opacity="0.85"/>
+      <defs><filter id="f-ck"><feGaussianBlur stdDeviation="2"/></filter></defs>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.07)"/>
+      {/* Garden glow — warm afternoon light */}
+      <ellipse cx="50" cy="40" rx="34" ry="28" fill="hsl(var(--primary) / 0.1)" filter="url(#f-ck)"/>
+      {/* Pergola arch */}
+      <path d="M12 88 L12 38 Q50 20 88 38 L88 88" stroke="hsl(var(--primary) / 0.35)" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Climbing rose dabs — left side */}
+      {([[8,40],[10,50],[8,60],[12,44],[6,54],[14,52]] as [number,number][]).map(([x,y],i) => (
+        <circle key={`l${i}`} cx={x} cy={y} r="4.5" fill="hsl(var(--primary))" opacity={0.2 + (i%4)*0.1}/>
+      ))}
+      {/* Right side */}
+      {([[90,40],[92,52],[88,60],[94,44],[90,56],[86,48]] as [number,number][]).map(([x,y],i) => (
+        <circle key={`r${i}`} cx={x} cy={y} r="4.5" fill="hsl(var(--primary))" opacity={0.2 + (i%4)*0.1}/>
+      ))}
+      {/* Top arch roses */}
+      {([[30,28],[40,22],[50,18],[60,22],[70,28],[46,24],[54,24]] as [number,number][]).map(([x,y],i) => (
+        <circle key={`t${i}`} cx={x} cy={y} r="4" fill="hsl(var(--primary))" opacity={0.22 + (i%3)*0.1}/>
+      ))}
+      {/* Small table */}
+      <ellipse cx="50" cy="76" rx="18" ry="6" fill="hsl(var(--primary) / 0.18)" stroke="hsl(var(--primary) / 0.35)" strokeWidth="1"/>
+      {/* Wine glass — suggested oval bowl + stem */}
+      <ellipse cx="50" cy="60" rx="7" ry="4.5" fill="hsl(var(--primary) / 0.25)" stroke="hsl(var(--primary) / 0.5)" strokeWidth="1.2"/>
+      <path d="M46 64 Q48 72 48 76 M44 78 L54 78" stroke="hsl(var(--primary) / 0.5)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Ground foliage */}
+      {([[14,90],[24,86],[36,90],[64,88],[76,90],[86,88]] as [number,number][]).map(([x,y],i) => (
+        <ellipse key={i} cx={x} cy={y} rx="8" ry="5" fill="hsl(var(--primary))" opacity={0.2 + (i%3)*0.07}/>
+      ))}
     </svg>
   ),
 
-  // STARGAZING — Big Dipper constellation + crescent moon
+  // STARGAZING — moonlit water at night (Impression, Sunrise): moon, reflection, stars
   stargazing: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
+      <defs><filter id="f-sg"><feGaussianBlur stdDeviation="2.5"/></filter></defs>
       <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.08)"/>
-      {/* Connecting lines first (behind stars) */}
-      <polyline points="20,44 28,32 38,28 48,30 56,38 68,38 68,50 56,50 48,30"
-        fill="none" stroke="hsl(var(--primary))" strokeWidth="1.4"
-        strokeLinejoin="miter" opacity="0.55"/>
-      {/* Big Dipper stars — angular star shapes */}
-      {([
-        [20,44],[28,32],[38,28],[48,30],[56,38],[68,38],[68,50],[56,50]
-      ] as [number,number][]).map(([x,y],i) => (
-        <path key={i}
-          d={`M${x},${y-4} L${x+1.2},${y-1.2} L${x+4},${y} L${x+1.2},${y+1.2} L${x},${y+4} L${x-1.2},${y+1.2} L${x-4},${y} L${x-1.2},${y-1.2} Z`}
-          fill="hsl(var(--primary))"/>
+      {/* Dark sky wash */}
+      <ellipse cx="50" cy="32" rx="42" ry="26" fill="hsl(var(--primary) / 0.07)" filter="url(#f-sg)"/>
+      {/* Water surface — horizontal bands */}
+      {[55,60,65,70,75,80,85,90].map((y,i) => (
+        <path key={i} d={`M8 ${y} Q${25 + i*4} ${y - 1.5} 50 ${y} Q${65 + i*3} ${y + 1} 92 ${y}`}
+          stroke="hsl(var(--primary))" strokeWidth={0.9 + (i%3)*0.4} fill="none"
+          opacity={0.14 + i * 0.025} strokeLinecap="round"/>
       ))}
-      {/* Crescent moon — lower right */}
-      <path d="M72 64 A 14 14 0 1 0 88 78 A 10 10 0 1 1 72 64 Z"
-        fill="hsl(var(--primary) / 0.3)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Small scattered stars */}
-      <path d="M82 22 L83 26 L87 26 L84 28 L85 32 L82 30 L79 32 L80 28 L77 26 L81 26 Z" fill="hsl(var(--primary))" opacity="0.8"/>
-      <circle cx="14" cy="58" r="2" fill="hsl(var(--primary))" opacity="0.5"/>
-      <circle cx="32" cy="70" r="1.8" fill="hsl(var(--primary))" opacity="0.5"/>
-      <circle cx="88" cy="44" r="1.8" fill="hsl(var(--primary))" opacity="0.55"/>
-      <path d="M16 24 L17 27 L20 28 L17 29 L16 32 L15 29 L12 28 L15 27 Z" fill="hsl(var(--primary))" opacity="0.7"/>
+      {/* Horizon line */}
+      <line x1="8" y1="54" x2="92" y2="54" stroke="hsl(var(--primary) / 0.2)" strokeWidth="1" strokeLinecap="round"/>
+      {/* Moon — soft glowing circle */}
+      <circle cx="72" cy="28" r="14" fill="hsl(var(--primary) / 0.12)" filter="url(#f-sg)"/>
+      <circle cx="72" cy="28" r="10" fill="hsl(var(--primary) / 0.2)" filter="url(#f-sg)"/>
+      <circle cx="72" cy="28" r="7" fill="hsl(var(--primary) / 0.4)"/>
+      <circle cx="72" cy="28" r="4.5" fill="hsl(var(--primary) / 0.6)"/>
+      {/* Moon reflection on water — tapered shimmer */}
+      <path d="M66 54 Q72 62 68 70 Q72 78 70 86" stroke="hsl(var(--primary) / 0.35)" strokeWidth="4" fill="none" strokeLinecap="round" filter="url(#f-sg)"/>
+      <path d="M74 54 Q70 62 74 68 Q70 76 72 86" stroke="hsl(var(--primary) / 0.25)" strokeWidth="2.5" fill="none" strokeLinecap="round" filter="url(#f-sg)"/>
+      {/* Stars — soft dabs */}
+      {([[16,18],[24,12],[34,20],[44,10],[56,16],[82,12],[90,22],[8,30]] as [number,number][]).map(([x,y],i) => (
+        <circle key={i} cx={x} cy={y} r={1 + (i%3)*0.6} fill="hsl(var(--primary))" opacity={0.3 + (i%4)*0.12}/>
+      ))}
+      {/* Boat silhouette */}
+      <path d="M18 54 Q22 58 28 56 Q32 60 38 58" stroke="hsl(var(--primary) / 0.4)" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+      <line x1="28" y1="56" x2="26" y2="46" stroke="hsl(var(--primary) / 0.3)" strokeWidth="1.2" strokeLinecap="round"/>
     </svg>
   ),
 
-  // CUSTOM — eight-point compass rose (any direction / make your own plan)
-  custom: () => {
-    const cx = 50, cy = 50;
-    const pts = Array.from({ length: 8 }, (_, i) => {
-      const a = (i * 45 - 90) * Math.PI / 180;
-      const isCard = i % 2 === 0;
-      const r = isCard ? 34 : 22;
-      const f = isCard ? 4.5 : 2.8;
-      const mid = r * 0.58;
-      const perp = a + Math.PI / 2;
-      const tx = cx + r * Math.cos(a), ty = cy + r * Math.sin(a);
-      const mx = cx + mid * Math.cos(a), my = cy + mid * Math.sin(a);
-      return {
-        d: `M${tx.toFixed(1)},${ty.toFixed(1)} L${(mx + f * Math.cos(perp)).toFixed(1)},${(my + f * Math.sin(perp)).toFixed(1)} L${cx},${cy} L${(mx - f * Math.cos(perp)).toFixed(1)},${(my - f * Math.sin(perp)).toFixed(1)} Z`,
-        card: isCard,
-      };
-    });
-    return (
-      <svg viewBox="0 0 100 100" className="w-20 h-20">
-        <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.08)"/>
-        <circle cx="50" cy="50" r="38" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.7" opacity="0.25"/>
-        <circle cx="50" cy="50" r="28" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.7" opacity="0.18"/>
-        {pts.map((p, i) => (
-          <path key={i} d={p.d}
-            fill={p.card ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.45)"}
-            strokeLinejoin="miter"/>
-        ))}
-        {/* Center hub */}
-        <circle cx="50" cy="50" r="6" fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth="2"/>
-        <circle cx="50" cy="50" r="3" fill="hsl(var(--primary))"/>
-      </svg>
-    );
-  },
+  // CUSTOM — painter's palette with impressionist paint dabs + brush
+  custom: () => (
+    <svg viewBox="0 0 100 100" className="w-20 h-20">
+      <defs><filter id="f-cu"><feGaussianBlur stdDeviation="1.8"/></filter></defs>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.07)"/>
+      {/* Palette glow */}
+      <ellipse cx="48" cy="52" rx="30" ry="26" fill="hsl(var(--primary) / 0.1)" filter="url(#f-cu)"/>
+      {/* Palette body — kidney shape */}
+      <path d="M24 42 Q18 32 26 24 Q38 14 52 22 Q64 14 74 24 Q82 34 76 46 Q82 56 74 66 Q62 78 48 72 Q30 78 22 66 Q14 54 24 42 Z"
+        fill="hsl(var(--primary) / 0.16)" stroke="hsl(var(--primary) / 0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Thumb hole */}
+      <ellipse cx="36" cy="28" rx="7" ry="5" fill="hsl(var(--primary) / 0.07)" stroke="hsl(var(--primary) / 0.35)" strokeWidth="1.5"/>
+      {/* Paint dabs — impressionist color spots */}
+      {([[52,26],[64,30],[72,42],[70,56],[60,66],[46,68],[34,62],[26,50],[28,36],[40,22]] as [number,number][]).map(([x,y],i) => (
+        <circle key={i} cx={x} cy={y} r="5.5" fill="hsl(var(--primary))" opacity={0.18 + (i%5)*0.1}/>
+      ))}
+      {/* Mixed paint blobs — center */}
+      {([[50,44],[44,52],[56,54],[50,58]] as [number,number][]).map(([x,y],i) => (
+        <circle key={i} cx={x} cy={y} r="4" fill="hsl(var(--primary))" opacity={0.3 + i*0.08} filter="url(#f-cu)"/>
+      ))}
+      {/* Paintbrush */}
+      <line x1="72" y1="22" x2="88" y2="8" stroke="hsl(var(--primary) / 0.5)" strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="60" y1="34" x2="72" y2="22" stroke="hsl(var(--primary) / 0.4)" strokeWidth="3.5" strokeLinecap="round"/>
+      {/* Brush tip — paint dab */}
+      <ellipse cx="86" cy="10" rx="4" ry="3" fill="hsl(var(--primary) / 0.55)" transform="rotate(-45 86 10)"/>
+      <circle cx="84" cy="12" r="3.5" fill="hsl(var(--primary) / 0.5)" filter="url(#f-cu)"/>
+    </svg>
+  ),
 };
+
 
 // Food types — themed lucide icons (instead of bright emoji)
 const FOOD_TYPES = [
