@@ -208,26 +208,31 @@ async function fetchAnime() {
   return { newReleases, popular };
 }
 
-// Fetch movies from Supabase — new releases rotate weekly, classics shuffle each session
+// Fetch movies from edge function — now showing updates each month, classics shuffle each session
 async function fetchMovies() {
   const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/movies?is_active=eq.true&select=*&order=created_at.asc`,
+    `${SUPABASE_URL}/functions/v1/get-movies`,
     { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
   );
   if (!response.ok) throw new Error("Failed to fetch movies");
   const data = await response.json();
-  // Show this week's 4 movies + last week's 4 = 8 new releases visible at a time
-  const weekSlot = (Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % 4) + 1;
-  const prevSlot = weekSlot === 1 ? 4 : weekSlot - 1;
-  const newReleases = data
-    .filter((m: any) => m.category === "new_release")
-    .filter((m: any) => m.week_number === weekSlot || m.week_number === prevSlot);
-  // Classics re-shuffle every session
-  const popularClassics = data
-    .filter((m: any) => m.category === "classic")
+  const newReleases = (data.nowShowing || []).map((m: any) => ({
+    id: m.id,
+    title: m.label,
+    year: m.year,
+    genre: m.genre || "",
+    category: "new_release",
+  }));
+  const popularClassics = (data.classics || [])
     .sort(() => Math.random() - 0.5)
-    .slice(0, 8);
-  return { newReleases, popularClassics, weekSlot };
+    .map((m: any) => ({
+      id: m.id,
+      title: m.label,
+      year: m.year,
+      genre: m.genre || "",
+      category: "classic",
+    }));
+  return { newReleases, popularClassics };
 }
 
 // Cuisine tag mapping from FOOD_TYPES to OSM cuisine tags
