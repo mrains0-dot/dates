@@ -23,202 +23,287 @@ const queryClient = new QueryClient({
 
 
 
-// Date option illustrations — rigid geometric / technical style (no curves)
+// Date option illustrations — soft romantic style, refined curves, realistic proportions
 const DateIllustrations = {
 
-  // RESTAURANT — geometric wine glass: triangle bowl + straight stem + flat base
+  // RESTAURANT — elegant wine glass with a single rose
   restaurant: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <rect x="5" y="5" width="90" height="90" rx="0" fill="hsl(var(--primary) / 0.04)" stroke="none"/>
-      {/* Glass bowl — inverted trapezoid */}
-      <path d="M20 16 L80 16 L62 58 L38 58 Z" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"/>
-      {/* Liquid level */}
-      <path d="M30 36 L70 36 L62 58 L38 58 Z" fill="hsl(var(--primary) / 0.15)" stroke="none"/>
-      <line x1="30" y1="36" x2="70" y2="36" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square"/>
-      {/* Stem */}
-      <line x1="50" y1="58" x2="50" y2="76" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square"/>
-      {/* Base */}
-      <rect x="30" y="76" width="40" height="6" fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.04)"/>
+      {/* Wine glass — realistic proportions with smooth curves */}
+      <path d="M32 18 C32 18 30 38 32 46 C34 54 42 60 50 62 C58 60 66 54 68 46 C70 38 68 18 68 18"
+        fill="hsl(var(--primary) / 0.06)" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Glass rim — subtle ellipse */}
+      <ellipse cx="50" cy="18" rx="18" ry="5" fill="hsl(var(--primary) / 0.05)" stroke="hsl(var(--primary))" strokeWidth="1.8"/>
+      {/* Wine fill */}
+      <path d="M34 36 C34 36 33 44 36 48 C40 54 44 58 50 60 C56 58 60 54 64 48 C67 44 66 36 66 36"
+        fill="hsl(var(--primary) / 0.15)" stroke="none"/>
+      <path d="M34 36 C38 34 62 34 66 36" stroke="hsl(var(--primary))" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.7"/>
+      {/* Stem — gentle taper */}
+      <path d="M48 62 C48 66 48 72 48 76 C48 78 52 78 52 76 C52 72 52 66 52 62"
+        fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round"/>
+      {/* Base — elegant ellipse */}
+      <ellipse cx="50" cy="78" rx="14" ry="4" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.8"/>
+      {/* Rose — beside the glass */}
+      <path d="M78 42 C76 38 72 36 74 32 C76 28 80 30 82 28 C84 26 82 22 78 24 C74 26 72 30 70 34 C68 38 72 42 76 44 C80 46 80 44 78 42"
+        fill="hsl(var(--primary) / 0.18)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Rose center */}
+      <path d="M76 34 C77 32 78 34 76 36" stroke="hsl(var(--primary))" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.7"/>
+      {/* Rose stem */}
+      <path d="M76 44 C78 52 76 62 78 72" stroke="hsl(var(--primary))" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.6"/>
+      {/* Rose leaf */}
+      <path d="M77 56 C82 52 86 56 82 60 C78 58 77 56 77 56" fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="1" strokeLinecap="round"/>
     </svg>
   ),
 
-  // CINEMA — film clapperboard: all rectangles and straight diagonals
+  // CINEMA — theater seats with glowing screen
   cinema: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <rect x="5" y="5" width="90" height="90" rx="0" fill="hsl(var(--primary) / 0.04)" stroke="none"/>
-      {/* Slate body */}
-      <rect x="14" y="42" width="72" height="44" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
-      {/* Text lines on slate */}
-      <line x1="22" y1="54" x2="78" y2="54" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="square" opacity="0.4"/>
-      <line x1="22" y1="64" x2="66" y2="64" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="square" opacity="0.4"/>
-      <line x1="22" y1="74" x2="56" y2="74" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="square" opacity="0.4"/>
-      {/* Hinge bar */}
-      <rect x="14" y="36" width="72" height="7" fill="hsl(var(--primary))" stroke="hsl(var(--primary))" strokeWidth="1"/>
-      {/* Clapper arm — parallelogram */}
-      <path d="M14 36 L18 16 L86 16 L86 36 Z" fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"/>
-      {/* Stripe blocks on clapper */}
-      <path d="M26 36 L28 16 L38 16 L36 36 Z" fill="hsl(var(--primary) / 0.35)"/>
-      <path d="M46 36 L48 16 L58 16 L56 36 Z" fill="hsl(var(--primary) / 0.35)"/>
-      <path d="M66 36 L68 16 L78 16 L76 36 Z" fill="hsl(var(--primary) / 0.35)"/>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.04)"/>
+      {/* Screen glow — soft layered rectangles */}
+      <rect x="16" y="12" width="68" height="40" rx="3" fill="hsl(var(--primary) / 0.06)" stroke="none"/>
+      <rect x="16" y="12" width="68" height="40" rx="3" fill="none" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinejoin="round"/>
+      {/* Screen inner glow */}
+      <rect x="20" y="16" width="60" height="32" rx="1" fill="hsl(var(--primary) / 0.04)" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.5"/>
+      {/* Couple silhouettes — two heads close together */}
+      <ellipse cx="44" cy="72" rx="8" ry="9" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      <ellipse cx="56" cy="70" rx="7" ry="8.5" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      {/* Shoulders */}
+      <path d="M30 88 C30 80 36 76 44 78 C48 79 52 79 56 78 C64 76 70 80 70 88"
+        fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round"/>
+      {/* Seat backs beside them */}
+      <path d="M12 78 C12 74 16 72 20 72 C24 72 26 74 26 78 L26 90 L12 90 Z"
+        fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M74 78 C74 74 78 72 82 72 C86 72 88 74 88 78 L88 90 L74 90 Z"
+        fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Screen light rays — subtle */}
+      <path d="M30 52 L44 66" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.25" strokeLinecap="round"/>
+      <path d="M50 52 L50 66" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.25" strokeLinecap="round"/>
+      <path d="M70 52 L56 66" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.25" strokeLinecap="round"/>
     </svg>
   ),
 
-  // PICNIC — geometric basket: rectangular body + angular handle + grid weave
+  // PICNIC — blanket under a tree with wine and sunset
   picnic: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <rect x="5" y="5" width="90" height="90" rx="0" fill="hsl(var(--primary) / 0.04)" stroke="none"/>
-      {/* Handle — rectangular arch */}
-      <path d="M30 48 L30 24 L70 24 L70 48" fill="none" stroke="hsl(var(--primary))" strokeWidth="4" strokeLinecap="square" strokeLinejoin="miter"/>
-      {/* Basket body — trapezoid */}
-      <path d="M18 48 L82 48 L76 88 L24 88 Z" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"/>
-      {/* Lid band */}
-      <rect x="18" y="48" width="64" height="8" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
-      {/* Vertical weave lines */}
-      <line x1="38" y1="56" x2="36" y2="88" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="square" opacity="0.5"/>
-      <line x1="50" y1="56" x2="50" y2="88" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="square" opacity="0.5"/>
-      <line x1="62" y1="56" x2="64" y2="88" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="square" opacity="0.5"/>
-      {/* Horizontal weave lines */}
-      <line x1="20" y1="66" x2="80" y2="66" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="square" opacity="0.5"/>
-      <line x1="22" y1="78" x2="78" y2="78" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="square" opacity="0.5"/>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.04)"/>
+      {/* Tree trunk — graceful curve */}
+      <path d="M72 90 C70 78 68 66 70 56 C72 46 74 40 72 34"
+        stroke="hsl(var(--primary))" strokeWidth="3" fill="none" strokeLinecap="round"/>
+      {/* Tree canopy — soft cloud of foliage */}
+      <path d="M52 36 C44 32 42 24 48 18 C54 12 62 14 66 18 C70 12 78 14 82 20 C88 26 86 34 80 36 C86 40 84 48 78 50 C72 52 64 50 58 48 C52 50 46 46 46 40 C46 38 48 36 52 36"
+        fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Ground line */}
+      <path d="M8 84 C20 82 40 80 60 82 C80 84 92 82 92 82" stroke="hsl(var(--primary))" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.5"/>
+      {/* Blanket — draped diamond */}
+      <path d="M16 78 C20 72 34 70 42 72 C50 70 56 72 56 78 C56 82 48 86 38 86 C28 86 16 84 16 78"
+        fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Blanket fold line */}
+      <path d="M20 78 C28 76 40 76 52 78" stroke="hsl(var(--primary))" strokeWidth="0.8" fill="none" strokeLinecap="round" opacity="0.5"/>
+      {/* Wine bottle */}
+      <path d="M30 72 C30 70 30 66 30 64 C30 62 31 60 33 60 C35 60 36 62 36 64 C36 66 36 70 36 72"
+        fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth="1.2" strokeLinecap="round"/>
+      {/* Two glasses */}
+      <path d="M40 74 C40 72 41 70 42 70 C43 70 44 72 44 74" stroke="hsl(var(--primary))" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+      <path d="M46 74 C46 72 47 70 48 70 C49 70 50 72 50 74" stroke="hsl(var(--primary))" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+      {/* Small flowers in grass */}
+      <circle cx="14" cy="80" r="2" fill="hsl(var(--primary) / 0.3)" stroke="hsl(var(--primary))" strokeWidth="0.8"/>
+      <circle cx="62" cy="80" r="1.8" fill="hsl(var(--primary) / 0.25)" stroke="hsl(var(--primary))" strokeWidth="0.8"/>
+      <circle cx="22" cy="86" r="1.5" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="0.8"/>
     </svg>
   ),
 
-  // HIKING — geometric mountains: triangles + rectangular trees + square sun
+  // HIKING — winding path through gentle rolling hills
   hiking: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <rect x="5" y="5" width="90" height="90" rx="0" fill="hsl(var(--primary) / 0.04)" stroke="none"/>
-      {/* Back mountain */}
-      <path d="M4 82 L30 38 L56 82 Z" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" opacity="0.6"/>
-      {/* Front mountain */}
-      <path d="M26 82 L58 14 L90 82 Z" fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"/>
-      {/* Snow cap */}
-      <path d="M58 14 L66 34 L50 34 Z" fill="hsl(var(--primary) / 0.3)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Ground */}
-      <line x1="4" y1="82" x2="96" y2="82" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square"/>
-      {/* Tree left — geometric: triangle on rectangle trunk */}
-      <rect x="10" y="72" width="4" height="10" fill="hsl(var(--primary) / 0.4)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
-      <path d="M4 72 L12 52 L20 72 Z" fill="hsl(var(--primary) / 0.18)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Tree right */}
-      <rect x="78" y="72" width="4" height="10" fill="hsl(var(--primary) / 0.4)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
-      <path d="M72 72 L80 52 L88 72 Z" fill="hsl(var(--primary) / 0.18)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Sun — square */}
-      <rect x="76" y="10" width="14" height="14" fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.04)"/>
+      {/* Distant hills — very soft */}
+      <path d="M6 54 C18 42 32 38 44 46 C56 38 70 34 94 50"
+        fill="none" stroke="hsl(var(--primary))" strokeWidth="1.2" strokeLinecap="round" opacity="0.35"/>
+      {/* Mid hills */}
+      <path d="M6 64 C16 54 30 50 42 58 C54 50 68 48 94 60"
+        fill="hsl(var(--primary) / 0.06)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
+      {/* Near hills */}
+      <path d="M6 80 C14 72 26 68 38 72 C50 66 66 64 94 74 L94 92 L6 92 Z"
+        fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Winding path — realistic perspective */}
+      <path d="M44 92 C42 86 40 80 42 76 C46 70 54 68 56 64 C58 60 54 54 50 50 C46 46 48 40 50 36"
+        fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="round" opacity="0.5"/>
+      <path d="M52 92 C50 86 48 80 50 76 C54 70 62 68 64 64 C66 60 62 54 58 50 C54 46 56 40 58 36"
+        fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="round" opacity="0.5"/>
+      {/* Tree silhouettes */}
+      <path d="M18 72 C16 66 14 60 18 56 C22 52 26 56 26 60 C30 58 32 62 30 66 C28 62 24 64 22 68"
+        fill="hsl(var(--primary) / 0.14)" stroke="hsl(var(--primary))" strokeWidth="1.2" strokeLinecap="round"/>
+      <path d="M78 66 C76 62 78 56 82 54 C86 52 88 56 86 60 C84 56 80 58 78 62"
+        fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="1.2" strokeLinecap="round"/>
+      {/* Sun */}
+      <circle cx="76" cy="24" r="10" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      <circle cx="76" cy="24" r="6" fill="hsl(var(--primary) / 0.06)" stroke="none"/>
     </svg>
   ),
 
-  // COOKING — geometric pot: rectangles for body, lid, handles
+  // COOKING — elegant pot with aromatic steam swirls
   cooking: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <rect x="5" y="5" width="90" height="90" rx="0" fill="hsl(var(--primary) / 0.04)" stroke="none"/>
-      {/* Pot body */}
-      <rect x="18" y="44" width="64" height="38" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
-      {/* Lid — flat rectangle */}
-      <rect x="14" y="36" width="72" height="8" fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.04)"/>
+      {/* Pot body — rounded, realistic */}
+      <path d="M20 52 C20 50 22 44 28 42 C34 40 42 40 50 40 C58 40 66 40 72 42 C78 44 80 50 80 52 L80 72 C80 76 76 80 68 82 C60 84 40 84 32 82 C24 80 20 76 20 72 Z"
+        fill="hsl(var(--primary) / 0.07)" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Pot rim */}
+      <ellipse cx="50" cy="40" rx="30" ry="6" fill="hsl(var(--primary) / 0.06)" stroke="hsl(var(--primary))" strokeWidth="1.8"/>
+      {/* Lid — gentle dome */}
+      <path d="M24 40 C24 36 34 30 50 30 C66 30 76 36 76 40"
+        fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="round"/>
       {/* Lid knob */}
-      <rect x="44" y="28" width="12" height="8" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
-      {/* Left handle */}
-      <path d="M18 54 L8 54 L8 66 L18 66" fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"/>
-      {/* Right handle */}
-      <path d="M82 54 L92 54 L92 66 L82 66" fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"/>
-      {/* Steam — three straight vertical lines */}
-      <line x1="36" y1="28" x2="36" y2="12" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" opacity="0.5"/>
-      <line x1="50" y1="28" x2="50" y2="8" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" opacity="0.5"/>
-      <line x1="64" y1="28" x2="64" y2="12" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" opacity="0.5"/>
-      {/* Steam caps — short horizontal bars */}
-      <line x1="32" y1="12" x2="40" y2="12" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" opacity="0.5"/>
-      <line x1="46" y1="8" x2="54" y2="8" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" opacity="0.5"/>
-      <line x1="60" y1="12" x2="68" y2="12" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" opacity="0.5"/>
+      <ellipse cx="50" cy="28" rx="5" ry="3" fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      {/* Handle left */}
+      <path d="M20 56 C14 56 12 60 12 64 C12 68 14 72 20 72"
+        fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round"/>
+      {/* Handle right */}
+      <path d="M80 56 C86 56 88 60 88 64 C88 68 86 72 80 72"
+        fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round"/>
+      {/* Steam — graceful S-curves */}
+      <path d="M36 28 C34 22 38 16 36 10" stroke="hsl(var(--primary))" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.4"/>
+      <path d="M50 26 C48 18 52 12 50 6" stroke="hsl(var(--primary))" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.4"/>
+      <path d="M64 28 C66 22 62 16 64 10" stroke="hsl(var(--primary))" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.4"/>
+      {/* Spoon resting on rim */}
+      <path d="M62 38 C66 36 70 34 72 30 C74 26 72 24 70 24 C68 24 66 26 66 28 C66 30 64 34 62 38"
+        fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="1.2" strokeLinecap="round"/>
+      <line x1="72" y1="30" x2="82" y2="20" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
     </svg>
   ),
 
-  // MUSEUM — nested rectangles as picture frame + geometric landscape inside
+  // MUSEUM — elegant classical archway with sculpture
   museum: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <rect x="5" y="5" width="90" height="90" rx="0" fill="hsl(var(--primary) / 0.04)" stroke="none"/>
-      {/* Outer frame */}
-      <rect x="10" y="10" width="80" height="80" fill="none" stroke="hsl(var(--primary))" strokeWidth="5" strokeLinejoin="miter"/>
-      {/* Inner frame */}
-      <rect x="18" y="18" width="64" height="64" fill="hsl(var(--primary) / 0.05)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="miter" opacity="0.5"/>
-      {/* Painting inside: geometric landscape */}
-      {/* Sun */}
-      <rect x="62" y="26" width="12" height="12" fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Horizon */}
-      <line x1="22" y1="56" x2="78" y2="56" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="square" opacity="0.4"/>
-      {/* Hill — triangle */}
-      <path d="M22 74 L40 50 L58 74 Z" fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Second hill — triangle */}
-      <path d="M48 74 L66 54 L78 74 Z" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="miter"/>
-      {/* Ground fill */}
-      <rect x="22" y="74" width="56" height="4" fill="hsl(var(--primary) / 0.1)" stroke="none"/>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.04)"/>
+      {/* Arch — smooth semicircle on two pillars */}
+      <path d="M18 86 L18 28 C18 16 32 8 50 8 C68 8 82 16 82 28 L82 86"
+        fill="hsl(var(--primary) / 0.05)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Pillar bases */}
+      <rect x="14" y="82" width="12" height="6" rx="1" fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="1.2"/>
+      <rect x="74" y="82" width="12" height="6" rx="1" fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="1.2"/>
+      {/* Pillar capitals */}
+      <path d="M16 28 C16 26 20 24 22 24 C24 24 26 26 28 28"
+        stroke="hsl(var(--primary))" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.6"/>
+      <path d="M72 28 C72 26 76 24 78 24 C80 24 82 26 84 28"
+        stroke="hsl(var(--primary))" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.6"/>
+      {/* Inner arch detail */}
+      <path d="M24 82 L24 34 C24 22 36 16 50 16 C64 16 76 22 76 34 L76 82"
+        fill="none" stroke="hsl(var(--primary))" strokeWidth="1" strokeLinecap="round" opacity="0.4"/>
+      {/* Sculpture on pedestal — figure silhouette */}
+      <rect x="42" y="66" width="16" height="16" rx="1" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.2"/>
+      {/* Bust/figure */}
+      <path d="M44 66 C44 60 46 54 50 52 C54 54 56 60 56 66"
+        fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round"/>
+      {/* Head */}
+      <ellipse cx="50" cy="48" rx="5" ry="6" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      {/* Keystone accent */}
+      <path d="M46 8 L50 4 L54 8" stroke="hsl(var(--primary))" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.6"/>
     </svg>
   ),
 
-  // COCKTAILS — martini glass: strict triangle bowl + line stem + flat base
+  // COCKTAILS — elegant coupe glass with cherry and bubbles
   cocktails: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <rect x="5" y="5" width="90" height="90" rx="0" fill="hsl(var(--primary) / 0.04)" stroke="none"/>
-      {/* Glass bowl — inverted triangle */}
-      <path d="M14 14 L86 14 L50 60 Z" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"/>
-      {/* Liquid fill */}
-      <path d="M22 26 L78 26 L50 60 Z" fill="hsl(var(--primary) / 0.14)" stroke="none"/>
-      <line x1="22" y1="26" x2="78" y2="26" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="square"/>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.04)"/>
+      {/* Coupe bowl — wide, elegant curve */}
+      <path d="M18 30 C18 30 22 52 30 58 C38 64 44 66 50 66 C56 66 62 64 70 58 C78 52 82 30 82 30"
+        fill="hsl(var(--primary) / 0.07)" stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Rim */}
+      <ellipse cx="50" cy="30" rx="32" ry="6" fill="hsl(var(--primary) / 0.05)" stroke="hsl(var(--primary))" strokeWidth="1.8"/>
+      {/* Drink fill */}
+      <path d="M22 38 C22 38 26 52 32 56 C38 60 44 62 50 62 C56 62 62 60 68 56 C74 52 78 38 78 38"
+        fill="hsl(var(--primary) / 0.12)" stroke="none"/>
+      <path d="M22 38 C28 36 40 34 50 34 C60 34 72 36 78 38" stroke="hsl(var(--primary))" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.6"/>
       {/* Stem */}
-      <line x1="50" y1="60" x2="50" y2="80" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square"/>
+      <path d="M48 66 C48 70 48 76 48 80 C48 82 52 82 52 80 C52 76 52 70 52 66"
+        stroke="hsl(var(--primary))" strokeWidth="1.5" fill="hsl(var(--primary) / 0.06)" strokeLinecap="round"/>
       {/* Base */}
-      <rect x="30" y="80" width="40" height="6" fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
-      {/* Olive on pick — square olive on straight line */}
-      <line x1="56" y1="10" x2="44" y2="46" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="square"/>
-      <rect x="50" y="14" width="8" height="8" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Olive center dot */}
-      <rect x="52" y="16" width="4" height="4" fill="hsl(var(--primary) / 0.5)" stroke="none"/>
+      <ellipse cx="50" cy="82" rx="16" ry="4" fill="hsl(var(--primary) / 0.07)" stroke="hsl(var(--primary))" strokeWidth="1.8"/>
+      {/* Cherry with stem */}
+      <circle cx="56" cy="36" r="4.5" fill="hsl(var(--primary) / 0.22)" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+      <path d="M56 32 C56 28 58 24 62 22" stroke="hsl(var(--primary))" strokeWidth="1" fill="none" strokeLinecap="round"/>
+      {/* Bubbles */}
+      <circle cx="38" cy="44" r="1.8" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.5"/>
+      <circle cx="44" cy="50" r="1.5" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.4"/>
+      <circle cx="60" cy="46" r="2" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.45"/>
+      <circle cx="50" cy="54" r="1.2" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.35"/>
     </svg>
   ),
 
-  // STARGAZING — geometric crescent (two overlapping squares) + cross-shaped stars
+  // STARGAZING — realistic crescent moon, constellation, couple on hill
   stargazing: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <rect x="5" y="5" width="90" height="90" rx="0" fill="hsl(var(--primary) / 0.04)" stroke="none"/>
-      {/* Moon — crescent from overlapping shapes */}
-      <path d="M22 14 L22 78 L46 78 L46 66 L34 66 L34 26 L46 26 L46 14 Z"
-        fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"/>
-      {/* Star 1 — large cross shape (top right) */}
-      <path d="M68 14 L72 14 L72 22 L80 22 L80 26 L72 26 L72 34 L68 34 L68 26 L60 26 L60 22 L68 22 Z"
-        fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Star 2 — medium cross (bottom right) */}
-      <path d="M72 56 L76 56 L76 62 L82 62 L82 66 L76 66 L76 72 L72 72 L72 66 L66 66 L66 62 L72 62 Z"
-        fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Star 3 — small square (middle) */}
-      <rect x="56" y="40" width="8" height="8" fill="hsl(var(--primary) / 0.3)" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinejoin="miter"/>
-      {/* Star dots */}
-      <rect x="84" y="38" width="5" height="5" fill="hsl(var(--primary))" opacity="0.5"/>
-      <rect x="86" y="78" width="4" height="4" fill="hsl(var(--primary))" opacity="0.4"/>
-      <rect x="52" y="80" width="4" height="4" fill="hsl(var(--primary))" opacity="0.4"/>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.06)"/>
+      {/* Crescent moon — realistic shading with inner circle cutout */}
+      <path d="M68 12 C60 14 54 22 54 32 C54 42 60 50 68 52 C62 54 56 50 52 44 C46 36 46 24 52 16 C56 12 62 10 68 12"
+        fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Moon surface detail */}
+      <circle cx="60" cy="28" r="2" fill="hsl(var(--primary) / 0.1)" stroke="none"/>
+      <circle cx="58" cy="36" r="1.5" fill="hsl(var(--primary) / 0.08)" stroke="none"/>
+      {/* Big Dipper constellation — connected stars */}
+      {/* Stars */}
+      <circle cx="14" cy="20" r="1.8" fill="hsl(var(--primary))" opacity="0.7"/>
+      <circle cx="22" cy="16" r="1.5" fill="hsl(var(--primary))" opacity="0.65"/>
+      <circle cx="30" cy="18" r="1.8" fill="hsl(var(--primary))" opacity="0.7"/>
+      <circle cx="36" cy="24" r="1.5" fill="hsl(var(--primary))" opacity="0.65"/>
+      <circle cx="34" cy="32" r="1.8" fill="hsl(var(--primary))" opacity="0.7"/>
+      <circle cx="26" cy="34" r="1.5" fill="hsl(var(--primary))" opacity="0.65"/>
+      <circle cx="18" cy="30" r="1.5" fill="hsl(var(--primary))" opacity="0.6"/>
+      {/* Constellation lines */}
+      <polyline points="14,20 22,16 30,18 36,24 34,32 26,34 18,30 14,20"
+        fill="none" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.4" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Scattered stars */}
+      <circle cx="80" cy="22" r="1" fill="hsl(var(--primary))" opacity="0.5"/>
+      <circle cx="44" cy="10" r="1.2" fill="hsl(var(--primary))" opacity="0.45"/>
+      <circle cx="86" cy="38" r="0.8" fill="hsl(var(--primary))" opacity="0.4"/>
+      <circle cx="76" cy="44" r="1" fill="hsl(var(--primary))" opacity="0.35"/>
+      <circle cx="10" cy="44" r="0.8" fill="hsl(var(--primary))" opacity="0.35"/>
+      <circle cx="42" cy="42" r="0.8" fill="hsl(var(--primary))" opacity="0.3"/>
+      {/* Hill — gentle rolling curve */}
+      <path d="M6 86 C14 78 28 72 42 74 C56 72 72 68 94 76 L94 94 L6 94 Z"
+        fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round"/>
+      {/* Two figures sitting on hill — couple silhouette */}
+      <path d="M46 72 C46 68 48 64 50 64 C52 64 52 66 52 68"
+        fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="50" cy="62" r="3" fill="hsl(var(--primary) / 0.18)" stroke="hsl(var(--primary))" strokeWidth="1.2"/>
+      <path d="M54 72 C54 68 56 64 58 64 C60 64 60 66 60 68"
+        fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="58" cy="62" r="3" fill="hsl(var(--primary) / 0.18)" stroke="hsl(var(--primary))" strokeWidth="1.2"/>
+      {/* Leaning together — connecting line */}
+      <path d="M52 63 C53 62 55 62 56 63" stroke="hsl(var(--primary))" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.5"/>
     </svg>
   ),
 
-  // CUSTOM — geometric pencil (create your own): all rectangles + triangle tip
+  // CUSTOM — elegant compass rose with heart center
   custom: () => (
     <svg viewBox="0 0 100 100" className="w-20 h-20">
-      <rect x="5" y="5" width="90" height="90" rx="0" fill="hsl(var(--primary) / 0.04)" stroke="none"/>
-      {/* Pencil body — tall rectangle, rotated 45 degrees */}
-      <path d="M26 74 L56 44 L68 56 L38 86 Z" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter"/>
-      {/* Pencil tip — triangle */}
-      <path d="M20 80 L26 74 L38 86 Z" fill="hsl(var(--primary) / 0.25)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
-      {/* Eraser band */}
-      <path d="M56 44 L62 38 L74 50 L68 56 Z" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
-      {/* Eraser */}
-      <path d="M62 38 L68 32 L80 44 L74 50 Z" fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinejoin="miter"/>
-      {/* Pencil center line */}
-      <line x1="32" y1="74" x2="62" y2="44" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="square" opacity="0.4"/>
-      {/* Mark being drawn — small squares */}
-      <rect x="10" y="84" width="6" height="3" fill="hsl(var(--primary))" opacity="0.5"/>
-      <rect x="10" y="78" width="4" height="3" fill="hsl(var(--primary))" opacity="0.35"/>
-      {/* Plus sign — "create" symbol */}
-      <line x1="82" y1="14" x2="82" y2="28" stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="square"/>
-      <line x1="75" y1="21" x2="89" y2="21" stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="square"/>
+      <circle cx="50" cy="50" r="45" fill="hsl(var(--primary) / 0.04)"/>
+      {/* Outer circle */}
+      <circle cx="50" cy="50" r="36" fill="none" stroke="hsl(var(--primary))" strokeWidth="1.2" opacity="0.3"/>
+      <circle cx="50" cy="50" r="32" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.2"/>
+      {/* Cardinal points — elongated diamonds */}
+      {/* North */}
+      <path d="M50 14 L54 42 L50 46 L46 42 Z" fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="round"/>
+      {/* South */}
+      <path d="M50 86 L54 58 L50 54 L46 58 Z" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="round"/>
+      {/* East */}
+      <path d="M86 50 L58 54 L54 50 L58 46 Z" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="round"/>
+      {/* West */}
+      <path d="M14 50 L42 54 L46 50 L42 46 Z" fill="hsl(var(--primary) / 0.08)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="round"/>
+      {/* Ordinal points — thinner */}
+      <path d="M26 26 L44 46 L46 44 Z" fill="hsl(var(--primary) / 0.06)" stroke="hsl(var(--primary))" strokeWidth="1" strokeLinejoin="round" opacity="0.7"/>
+      <path d="M74 26 L56 46 L54 44 Z" fill="hsl(var(--primary) / 0.06)" stroke="hsl(var(--primary))" strokeWidth="1" strokeLinejoin="round" opacity="0.7"/>
+      <path d="M26 74 L44 54 L46 56 Z" fill="hsl(var(--primary) / 0.06)" stroke="hsl(var(--primary))" strokeWidth="1" strokeLinejoin="round" opacity="0.7"/>
+      <path d="M74 74 L56 54 L54 56 Z" fill="hsl(var(--primary) / 0.06)" stroke="hsl(var(--primary))" strokeWidth="1" strokeLinejoin="round" opacity="0.7"/>
+      {/* Heart at center */}
+      <path d="M50 56 C47 53 43 50 43 47 C43 44 45 42 48 42 C50 42 50 44 50 44 C50 44 50 42 52 42 C55 42 57 44 57 47 C57 50 53 53 50 56"
+        fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
 };
+
 
 
 
