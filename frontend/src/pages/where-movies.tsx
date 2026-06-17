@@ -17,8 +17,17 @@ interface Movie {
 const FALLBACK_NOW_SHOWING: Movie[] = [
   { id: "avengers-doomsday", label: "Avengers: Doomsday", year: "2026", genre: "Action/Superhero" },
   { id: "mission-impossible-fr", label: "Mission: Impossible – The Final Reckoning", year: "2026", genre: "Action/Thriller" },
+  { id: "f1-movie", label: "F1", year: "2026", genre: "Action/Drama" },
+  { id: "ballerina", label: "Ballerina", year: "2026", genre: "Action/Thriller" },
+  { id: "final-destination-reboot", label: "Final Destination Bloodlines", year: "2026", genre: "Horror/Thriller" },
+  { id: "karate-kid-legends", label: "Karate Kid: Legends", year: "2026", genre: "Action/Drama" },
   { id: "jurassic-world-rebirth", label: "Jurassic World Rebirth", year: "2026", genre: "Action/Adventure" },
   { id: "28-years-later", label: "28 Years Later", year: "2026", genre: "Horror/Thriller" },
+  { id: "zootopia-2", label: "Zootopia 2", year: "2026", genre: "Animation/Comedy" },
+  { id: "wicked-part-2", label: "Wicked: For Good", year: "2026", genre: "Fantasy/Musical" },
+  { id: "m3gan-2", label: "M3GAN 2.0", year: "2026", genre: "Horror/Sci-Fi" },
+  { id: "sinners", label: "Sinners", year: "2026", genre: "Horror/Drama" },
+  { id: "a-minecraft-movie", label: "A Minecraft Movie", year: "2026", genre: "Animation/Adventure" },
   { id: "lilo-stitch", label: "Lilo & Stitch", year: "2026", genre: "Animation/Family" },
   { id: "thunderbolts", label: "Thunderbolts*", year: "2026", genre: "Action/Superhero" },
 ];
